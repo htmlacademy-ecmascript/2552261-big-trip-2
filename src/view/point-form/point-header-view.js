@@ -94,7 +94,7 @@ function createEventHeaderTemplate() {
     '                </header>';
 }
 
-export default class EventHeaderView {
+export default class PointHeaderView {
   getTemplate() {
     return createEventHeaderTemplate();
   }

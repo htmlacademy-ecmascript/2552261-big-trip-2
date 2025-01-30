@@ -1,4 +1,4 @@
-import {createElement} from '../../render';
+import {createElement} from '../../../render';
 
 function createEventOffersTemplate() {
   return '<section class="event__section  event__section--offers">\n' +
@@ -53,7 +53,7 @@ function createEventOffersTemplate() {
     '                  </section>';
 }
 
-export default class EventOffersView {
+export default class PointOffersView {
   getTemplate() {
     return createEventOffersTemplate();
   }

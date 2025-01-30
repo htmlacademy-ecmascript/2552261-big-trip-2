@@ -1,4 +1,4 @@
-import {createElement} from '../../render';
+import {createElement} from '../../../render';
 
 function createEventDestinationTemplate() {
   return '<section class="event__section  event__section--destination">\n' +
@@ -17,7 +17,7 @@ function createEventDestinationTemplate() {
     '                  </section>';
 }
 
-export default class EventDestinationView {
+export default class PointDestinationView {
   getTemplate() {
     return createEventDestinationTemplate();
   }
