@@ -6,4 +6,8 @@ export default class DestinationsModel {
   getDestinations() {
     return this.destinations;
   }
+
+  getDestinationById(id) {
+    return this.destinations.find((obj) => obj.id.localeCompare(id) === 0);
+  }
 }
