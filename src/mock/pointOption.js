@@ -1,4 +1,4 @@
-const mockOffers = [
+const mockPointOptions = [
   {
     type: {
       id: 'taxi',
@@ -17,7 +17,7 @@ const mockOffers = [
       },
       {
         id: '42ce-b747-e281314baa31-b4c3e4e6-9053',
-        title: 'business class',
+        title: 'Business class',
         price: 43
       }
     ]
@@ -37,4 +37,4 @@ const mockOffers = [
   }
 ];
 
-export {mockOffers};
+export {mockPointOptions};

@@ -1,11 +1,11 @@
 import MainPresenter from './presenter/main-presenter';
 import HeaderPresenter from './presenter/header-presenter';
 import PointsModel from './model/points-model';
-import OffersModel from './model/offers-model';
+import PointOptionsModel from './model/point-options-model';
 import DestinationsModel from './model/destinations-model';
 
 const pointsModel = new PointsModel();
-const offersModel = new OffersModel();
+const offersModel = new PointOptionsModel();
 const destinationsModel = new DestinationsModel();
 
 const mainContainer = document.querySelector('.trip-events');

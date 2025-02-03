@@ -6,8 +6,8 @@ const mockPoints = [
     dateTo: '2019-07-10T23:24:00.000Z',
     destination: 'cfe416cq-10xa-ye10-8077-2fs9a01edcab',
     isFavorite: false,
-    offers: ['b4c3e4e6-9053-42ce-b747-e281314baa31'],
-    type: 'b4c3e4e6-9053-42ce-b747-e281314baa31'
+    offers: ['b4c3e4e6-9053-42ce-b747-e281314baa31', '42ce-b747-e281314baa31-b4c3e4e6-9053'],
+    type: 'taxi'
   }
 ];
 

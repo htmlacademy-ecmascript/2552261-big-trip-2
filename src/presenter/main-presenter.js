@@ -7,10 +7,10 @@ import {render} from '../render';
 export default class MainPresenter {
   pointListComponent = new PointListView();
 
-  constructor(container, pointModel, offersModel, destinationModel) {
+  constructor(container, pointModel, pointOptionsModel, destinationModel) {
     this.container = container;
     this.pointModel = pointModel;
-    this.offersModel = offersModel;
+    this.pointOptionsModel = pointOptionsModel;
     this.destinationModel = destinationModel;
   }
 
@@ -21,11 +21,12 @@ export default class MainPresenter {
     render(new PointFormView(), this.pointListComponent.getElement());
 
     for (let i = 0; i < this.points.length; i++) {
-      console.log(this.offersModel.getOffersByType(this.points[i].type)); // TODO delete
-      render(new PointView({point: this.points[i]},
-        this.offersModel.getTypeById(this.points[i].type),
-        {destination: this.destinationModel.getDestinationById(this.points[i].destination)}),
-      this.pointListComponent.getElement());
+      const point = this.points[i];
+      const type = this.pointOptionsModel.getTypeById(this.points[i].type);
+      const destination = this.destinationModel.getDestinationById(this.points[i].destination);
+      const offers = this.pointOptionsModel.getOffersByType(this.points[i].type);
+
+      render(new PointView({point, type, destination, offers}), this.pointListComponent.getElement());
     }
   }
 }

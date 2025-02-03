@@ -2,7 +2,7 @@ import {createElement} from '../../render';
 import PointDetailsView from './point-details/point-details-view';
 import PointHeaderView from './point-header-view';
 
-function createEventEditTemplate() {
+function createPointEditTemplate() {
   return `<li class="trip-events__item"><form class="event event--edit" action="#" method="post"></form></li>`;
 }
 
@@ -11,7 +11,7 @@ export default class PointFormView {
   eventHeader = new PointHeaderView();
 
   getTemplate() {
-    return createEventEditTemplate();
+    return createPointEditTemplate();
   }
 
   getElement() {
