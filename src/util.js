@@ -1,8 +1,18 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 
 function parseDate(date) {
   const [day, month, year, hour, minute] = date.split(/\/|\s|:/);
   return new Date(Date.UTC(year, month - 1, day, hour, minute));
+}
+
+function formatDate(date) {
+  return dayjs.tz(date,'Europe/Moscow').format('YY/MM/DD HH:mm');
 }
 
 function getDate(date) {
@@ -32,4 +42,4 @@ function getTimeDifference(date1, date2) {
   return `${dateJs2.diff(dateJs1, 'minute')}M`;
 }
 
-export {parseDate, getDate, getTimeDifference, getShortTime, getShortDate};
+export {parseDate, getDate, getTimeDifference, getShortTime, getShortDate, formatDate};

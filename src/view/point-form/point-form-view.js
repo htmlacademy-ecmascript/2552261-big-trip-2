@@ -1,14 +1,22 @@
 import {createElement} from '../../render';
 import PointDetailsView from './point-details/point-details-view';
-import PointHeaderView from './point-header-view';
+import PointHeaderView from './point-header/point-header-view';
 
 function createPointEditTemplate() {
   return `<li class="trip-events__item"><form class="event event--edit" action="#" method="post"></form></li>`;
 }
 
 export default class PointFormView {
+
+  constructor({point, type, destination, offers} = {}) {
+    this.point = point;
+    this.type = type;
+    this.destination = destination;
+    this.offers = offers;
+  }
+
   eventDetails = new PointDetailsView();
-  eventHeader = new PointHeaderView();
+  eventHeader = new PointHeaderView(this.point, this.type);
 
   getTemplate() {
     return createPointEditTemplate();
