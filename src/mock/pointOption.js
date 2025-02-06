@@ -1,8 +1,7 @@
 const mockPointOptions = [
   {
     type: {
-      id: 'taxi',
-      image: 'img/icons/taxi.png',
+      type: 'taxi'
     },
     offers: [
       {
@@ -24,8 +23,7 @@ const mockPointOptions = [
   },
   {
     type: {
-      id: 'bus',
-      image: 'img/icons/bus.png',
+      type: 'bus'
     },
     offers: [
       {
@@ -33,6 +31,55 @@ const mockPointOptions = [
         title: 'Drive to Tambov',
         price: 21
       },
+    ]
+  },
+  {
+    type: {
+      type: 'train'
+    },
+    offers: [
+    ]
+  },
+  {
+    type: {
+      type: 'ship'
+    },
+    offers: [
+    ]
+  },
+  {
+    type: {
+      type: 'drive'
+    },
+    offers: [
+    ]
+  },
+  {
+    type: {
+      type: 'flight'
+    },
+    offers: [
+    ]
+  },
+  {
+    type: {
+      type: 'check-in'
+    },
+    offers: [
+    ]
+  },
+  {
+    type: {
+      type: 'sightseeing'
+    },
+    offers: [
+    ]
+  },
+  {
+    type: {
+      type: 'restaurant'
+    },
+    offers: [
     ]
   }
 ];

@@ -42,4 +42,12 @@ function getTimeDifference(date1, date2) {
   return `${dateJs2.diff(dateJs1, 'minute')}M`;
 }
 
-export {parseDate, getDate, getTimeDifference, getShortTime, getShortDate, formatDate};
+function formatString(str) {
+  return str.toLowerCase().replaceAll(' ', '-');
+}
+
+function changeFirstLetter(string) {
+  return string.replace(/^\w/, string.charAt(0).toUpperCase());
+}
+
+export {parseDate, getDate, getTimeDifference, getShortTime, getShortDate, formatDate, formatString, changeFirstLetter};

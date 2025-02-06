@@ -7,9 +7,3 @@ env:
   browser: true
 
 extends: 'htmlacademy/vanilla'
-
-rules:
-  quotes:
-    - error
-    - 'single'
-    - { allowTemplateLiterals: true }

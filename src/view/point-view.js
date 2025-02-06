@@ -2,16 +2,11 @@ import {createElement} from '../render';
 import * as utils from '../util';
 
 function createOffersTemplate(offers) {
-  let result = '';
-  for (const key in offers) {
-    const offer = offers[key];
-    result += `<li className="event__offer">
-      <span className="event__offer-title">${offer.title}</span>
+  return offers.map(({title, price}) => `<li className="event__offer">
+      <span className="event__offer-title">${title}</span>
       &plus;&euro;&nbsp;
-      <span className="event__offer-price">${offer.price}</span>
-    </li>`;
-  }
-  return result;
+      <span className="event__offer-price">${price}</span>
+    </li>`).join('');
 }
 
 function createPointTemplate(point, type, destination, offers) {
@@ -20,7 +15,6 @@ function createPointTemplate(point, type, destination, offers) {
   const dateToConvert = utils.getDate(dateTo);
   const isFavoriteCheck = isFavorite ? 'event__favorite-btn--active' : '';
   const pointOffers = offers.filter((obj) => point.offers.some((pointOffer) => obj.id === pointOffer));
-
 
   return `<li class="trip-events__item">
               <div class="event">
