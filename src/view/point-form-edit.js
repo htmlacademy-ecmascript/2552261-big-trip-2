@@ -12,12 +12,12 @@ function createEventDestinationItem(destinations) {
   return destinations.map((destination) => `<option value="${destination.name}">${destination.name}</option>`).join('');
 }
 
-function createEventHeaderTemplate({point, type, types, destinations}) {
+function createEventHeaderTemplate({point, type, types, destination, destinations}) {
 
-  const typeImage = type?.image || 'img/icons/flight.png';
-  const typeName = type?.name || 'Flight';
-  const dateFrom = point?.dateFrom ? formatDate(point.dateFrom) : formatDate('2019-03-19T00:00:00.000Z');
-  const dateTo = point?.dateTo ? formatDate(point.dateTo) : formatDate('2019-03-19T00:00:00.000Z');
+  const typeImage = type.image;
+  const typeName = type.type;
+  const dateFrom = formatDate(point.dateFrom);
+  const dateTo = formatDate(point.dateTo);
 
   return `<header class="event__header">
                   <div class="event__type-wrapper">
@@ -39,7 +39,7 @@ ${createEventTypeItem(types)}
                     <label class="event__label  event__type-output" for="event-destination-1">
                       ${typeName}
                     </label>
-                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="Geneva" list="destination-list-1">
+                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
                     <datalist id="destination-list-1">
                     ${createEventDestinationItem(destinations)}
                     </datalist>
@@ -58,23 +58,20 @@ ${createEventTypeItem(types)}
                       <span class="visually-hidden">Price</span>
                       &euro;
                     </label>
-                    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${point?.basePrice || ''}">
+                    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${point.basePrice}">
                   </div>
 
                   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
                   <button class="event__reset-btn" type="reset">Cancel</button>
+                  <button class="event__rollup-btn" type="button">
+                    <span class="visually-hidden">Open event</span>
+                  </button>
                 </header>`;
 }
 
 function createEventDestinationTemplate(destination) {
-  const {description, pictures} = destination || {};
-  const currentPictures = pictures || [
-    {src: 'img/photos/1.jpg'},
-    {src: 'img/photos/2.jpg'},
-    {src: 'img/photos/3.jpg'},
-    {src: 'img/photos/4.jpg'},
-    {src: 'img/photos/5.jpg'},
-  ];
+  const {description, pictures} = destination;
+  const currentPictures = pictures;
 
   const currentDescription = description || 'Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Geneva). Surrounded by the Alps and Jura mountains, the city has views of dramatic Mont Blanc.';
 
@@ -106,28 +103,7 @@ function createOffersItemTemplate(offers) {
 }
 
 function createPointOffersTemplate(offers) {
-  const currentOffers = offers || [
-    {
-      title: 'Add luggage',
-      price: 30
-    },
-    {
-      title: 'Switch to comfort class',
-      price: 100
-    },
-    {
-      title: 'Add meal',
-      price: 15
-    },
-    {
-      title: 'Choose seats',
-      price: 5
-    },
-    {
-      title: 'Travel by train',
-      price: 40
-    }
-  ];
+  const currentOffers = offers;
 
   return `<section class="event__section  event__section--offers">
                        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
@@ -140,7 +116,7 @@ function createPointOffersTemplate(offers) {
 function createPointEditTemplate({point, type, offers, destination, types, destinations}) {
   return `<li class="trip-events__item">
 <form class="event event--edit" action="#" method="post">
-${createEventHeaderTemplate({point, type, types, destinations})}
+${createEventHeaderTemplate({point, type, types, destination, destinations})}
 <section class="event__details">
 ${createEventDestinationTemplate(destination)}
 ${createPointOffersTemplate(offers)}
@@ -149,7 +125,7 @@ ${createPointOffersTemplate(offers)}
 </li>`;
 }
 
-export default class PointFormView extends AbstractView {
+export default class PointFormEdit extends AbstractView {
 
   #point;
   #type;
@@ -157,19 +133,23 @@ export default class PointFormView extends AbstractView {
   #offers;
   #types;
   #destinations;
+  #handleFormSubmit;
+  #handleFormClose;
 
-  constructor({point, type, destination, offers, types, destinations} = {}) {
+  constructor({point, type, destination, offers, types, destinations, onFormSubmit, onCloseClick}) {
     super();
-    if (point && type && destination && offers && types) {
-      this.#point = point;
-      this.#type = type;
-      this.#destination = destination;
-      this.#offers = offers;
-      this.#types = types;
-    } else {
-      this.#types = types;
-      this.#destinations = destinations;
-    }
+    this.#point = point;
+    this.#type = type;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#types = types;
+    this.#destinations = destinations;
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handleFormClose = onCloseClick;
+    this.#offers = offers;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
+    this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
   }
 
   get template() {
@@ -177,5 +157,21 @@ export default class PointFormView extends AbstractView {
       point: this.#point, type: this.#type,
       offers: this.#offers, destination: this.#destination, types: this.#types, destinations: this.#destinations
     });
+  }
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit();
+    this.#resetForm();
+  };
+
+  #formClosetHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormClose();
+    this.#resetForm();
+  };
+
+  #resetForm() {
+    this.element.querySelector('.event--edit').reset();
   }
 }
