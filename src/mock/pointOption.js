@@ -38,6 +38,15 @@ const mockPointOptions = [
       type: 'train'
     },
     offers: [
+      {id: '42ce-b747-e281314baa31',
+        title: 'SV',
+        price: 25
+      },
+      {
+        id: '1314baa31-b4c3e4e6-9053',
+        title: 'Econom',
+        price: 43
+      }
     ]
   },
   {

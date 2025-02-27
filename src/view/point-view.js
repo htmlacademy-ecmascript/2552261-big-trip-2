@@ -1,5 +1,5 @@
-import {createElement} from '../render';
 import * as utils from '../util';
+import AbstractView from '../framework/view/abstract-view';
 
 function createOffersTemplate(offers) {
   return offers.map(({title, price}) => `<li className="event__offer">
@@ -9,7 +9,7 @@ function createOffersTemplate(offers) {
     </li>`).join('');
 }
 
-function createPointTemplate(point, type, destination, offers) {
+function createPointTemplate({point, type, destination, offers}) {
   const {basePrice, dateFrom, dateTo, isFavorite} = point;
   const dateFromConvert = utils.getDate(dateFrom);
   const dateToConvert = utils.getDate(dateTo);
@@ -51,27 +51,29 @@ function createPointTemplate(point, type, destination, offers) {
             </li>`;
 }
 
-export default class PointView {
+export default class PointView extends AbstractView{
 
-  constructor({point, type, destination, offers}) {
-    this.point = point;
-    this.type = type;
-    this.destination = destination;
-    this.offers = offers;
+  #point;
+  #type;
+  #destination;
+  #offers;
+  #handleEditClick;
+
+  constructor({point, type, destination, offers, onEditClick}) {
+    super();
+    this.#point = point;
+    this.#type = type;
+    this.#destination = destination;
+    this.#handleEditClick = onEditClick;
+    this.#offers = offers;this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
   }
 
-  getTemplate() {
-    return createPointTemplate(this.point, this.type, this.destination, this.offers);
+  get template() {
+    return createPointTemplate({point: this.#point, type: this.#type, destination: this.#destination, offers: this.#offers});
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
-  }
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditClick();
+  };
 }

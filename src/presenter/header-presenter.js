@@ -1,6 +1,6 @@
 import TripInfoView from '../view/trip-info-view';
 import FilterView from '../view/filter-view';
-import {render} from '../render';
+import {render} from '../framework/render';
 
 export default class HeaderPresenter {
   constructor(container) {
