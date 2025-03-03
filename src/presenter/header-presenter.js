@@ -3,8 +3,11 @@ import FilterView from '../view/filter-view';
 import {render} from '../framework/render';
 
 export default class HeaderPresenter {
-  constructor(container) {
+  #pointModel;
+
+  constructor(container, pointModel) {
     this.container = container;
+    this.#pointModel = pointModel;
   }
 
   init() {

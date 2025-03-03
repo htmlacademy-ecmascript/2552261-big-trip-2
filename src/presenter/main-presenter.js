@@ -4,9 +4,15 @@ import PointListView from '../view/point-list-view';
 import PointView from '../view/point-view';
 import {render} from '../framework/render';
 import {replace} from '../framework/render';
+import TripInfoView from '../view/trip-info-view';
+import FilterView from '../view/filter-view';
+import {filter} from '../utils/filter';
+import EmptyList from '../view/empty-points-list-view';
+import {FilterType} from '../../const';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
+  #emptyList = new EmptyList();
   #container;
   #pointModel;
   #pointOptionsModel;
@@ -23,27 +29,35 @@ export default class MainPresenter {
     this.points = this.#pointModel.getPoints();
     const types = this.#pointOptionsModel.getAllTypes();
     const destinations = this.#destinationModel.getDestinations();
+    const mainContainer = this.#container.querySelector('.trip-events');
+    const headerContainer = this.#container.querySelector('.trip-main');
 
-    render(new SortView(), this.#container);
-    render(this.#pointListComponent, this.#container);
-
-    for (let i = 0; i < this.points.length; i++) {
-      this.#renderPoint({types, destinations, index: i});
-    }
+    render(new TripInfoView(), headerContainer, 'afterbegin');
+    render(new FilterView(this.onFilterChange), headerContainer.querySelector('.trip-controls__filters'));
+    render(new SortView(), mainContainer);
+    render(this.#pointListComponent, mainContainer);
+    this.#renderPointList({points: this.points, types, destinations});
   }
 
-  #getTypeImage(points, index) {
+  #getTypeImage(point) {
     return {
-      type: this.points[index].type,
-      image: `img/icons/${this.points[index].type}.png`
+      type: point.type,
+      image: `img/icons/${point.type}.png`
     };
   }
 
-  #renderPoint({types, destinations, index}) {
-    const point = this.points[index];
-    const type = this.#getTypeImage(this.points, index);
-    const destination = this.#destinationModel.getDestinationById(this.points[index].destination);
-    const offers = this.#pointOptionsModel.getOffersByType(this.points[index].type);
+  #renderPointList({filterType = FilterType.EVERYTHING, points, types, destinations}) {
+    if (points.length > 0) {
+      points.forEach((point) => this.#renderPoint({point, types, destinations}));
+    } else {
+      render(new EmptyList(filterType), this.#container.querySelector('.trip-events'));
+    }
+  }
+
+  #renderPoint({point, types, destinations}) {
+    const type = this.#getTypeImage(point);
+    const destination = this.#destinationModel.getDestinationById(point.destination);
+    const offers = this.#pointOptionsModel.getOffersByType(point.type);
     const pointView = new PointView({point, type, destination, offers, onEditClick});
     const pointFormEdit = new PointFormEdit({
       point,
@@ -78,6 +92,38 @@ export default class MainPresenter {
     function onFormSubmit() {
       replace(pointView, pointFormEdit);
       document.removeEventListener('keydown', escKeyDownHandler);
+    }
+  }
+
+  onFilterChange = (evt) => {
+    if (evt.target.name === 'trip-filter') {
+
+      this.#clearPointList();
+      this.#clearFilterMessage();
+
+      render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
+
+      const types = this.#pointOptionsModel.getAllTypes();
+      const destinations = this.#destinationModel.getDestinations();
+      const points = Object.entries(filter).filter(([filterType,]) =>
+        filterType === evt.target.value).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
+
+      this.#renderPointList({filterType: evt.target.value, points, types, destinations});
+
+    }
+  };
+
+  #clearPointList() {
+    if (document.querySelector('.trip-events__list')) {
+      document.querySelector('.trip-events__list').remove();
+      this.#pointListComponent.removeElement();
+    }
+  }
+
+  #clearFilterMessage() {
+    if (document.querySelector('.trip-events__msg')) {
+      document.querySelector('.trip-events__msg').remove();
+      this.#emptyList.removeElement();
     }
   }
 }

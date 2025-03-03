@@ -1,4 +1,4 @@
-import {formatDate, formatString, changeFirstLetter} from '../util';
+import {formatDate, formatString, changeFirstLetter} from '../utils/util';
 import AbstractView from '../framework/view/abstract-view';
 
 function createEventTypeItem(types) {

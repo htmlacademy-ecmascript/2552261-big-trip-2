@@ -1,4 +1,4 @@
-import * as utils from '../util';
+import * as utils from '../utils/util';
 import AbstractView from '../framework/view/abstract-view';
 
 function createOffersTemplate(offers) {
@@ -65,7 +65,8 @@ export default class PointView extends AbstractView{
     this.#type = type;
     this.#destination = destination;
     this.#handleEditClick = onEditClick;
-    this.#offers = offers;this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
+    this.#offers = offers;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
   }
 
   get template() {
