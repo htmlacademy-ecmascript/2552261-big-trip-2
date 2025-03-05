@@ -8,7 +8,7 @@ function createEmptyPointList(filterType) {
   return `<p class="trip-events__msg">${message}</p>`;
 }
 
-export default class EmptyList extends AbstractView {
+export default class EmptyListView extends AbstractView {
   constructor(filterType = {}) {
     super();
     this.filterType = filterType;

@@ -1,19 +1,22 @@
-import SortView from '../view/sort-view';
-import PointFormEdit from '../view/point-form-edit';
+import PointPresenter from './point-presenter';
 import PointListView from '../view/point-list-view';
-import PointView from '../view/point-view';
-import {render} from '../framework/render';
-import {replace} from '../framework/render';
+import EmptyListView from '../view/empty-points-list-view';
 import TripInfoView from '../view/trip-info-view';
 import FilterView from '../view/filter-view';
-import {filter} from '../utils/filter';
-import EmptyList from '../view/empty-points-list-view';
+import SortView from '../view/sort-view';
+import {updateItem} from '../utils/common';
+import {render} from '../framework/render';
+import {RenderPosition} from '../framework/render';
 import {FilterType} from '../../const';
+import {filter} from '../utils/filter';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
-  #emptyList = new EmptyList();
+  #pointPresenters = new Map();
+  #emptyList = new EmptyListView();
   #container;
+  #mainContainer;
+  #headerContainer;
   #pointModel;
   #pointOptionsModel;
   #destinationModel;
@@ -23,95 +26,53 @@ export default class MainPresenter {
     this.#pointModel = pointModel;
     this.#pointOptionsModel = pointOptionsModel;
     this.#destinationModel = destinationModel;
+    this.#mainContainer = this.#container.querySelector('.trip-events');
+    this.#headerContainer = this.#container.querySelector('.trip-main');
   }
 
   init() {
-    this.points = this.#pointModel.getPoints();
+    this.points = [...this.#pointModel.getPoints()];
     const types = this.#pointOptionsModel.getAllTypes();
     const destinations = this.#destinationModel.getDestinations();
-    const mainContainer = this.#container.querySelector('.trip-events');
-    const headerContainer = this.#container.querySelector('.trip-main');
 
-    render(new TripInfoView(), headerContainer, 'afterbegin');
-    render(new FilterView(this.onFilterChange), headerContainer.querySelector('.trip-controls__filters'));
-    render(new SortView(), mainContainer);
-    render(this.#pointListComponent, mainContainer);
-    this.#renderPointList({points: this.points, types, destinations});
-  }
-
-  #getTypeImage(point) {
-    return {
-      type: point.type,
-      image: `img/icons/${point.type}.png`
-    };
-  }
-
-  #renderPointList({filterType = FilterType.EVERYTHING, points, types, destinations}) {
-    if (points.length > 0) {
-      points.forEach((point) => this.#renderPoint({point, types, destinations}));
-    } else {
-      render(new EmptyList(filterType), this.#container.querySelector('.trip-events'));
-    }
+    this.#renderPointBoard({
+      types,
+      destinations,
+      mainContainer: this.#mainContainer,
+      headerContainer: this.#headerContainer
+    });
   }
 
   #renderPoint({point, types, destinations}) {
-    const type = this.#getTypeImage(point);
-    const destination = this.#destinationModel.getDestinationById(point.destination);
-    const offers = this.#pointOptionsModel.getOffersByType(point.type);
-    const pointView = new PointView({point, type, destination, offers, onEditClick});
-    const pointFormEdit = new PointFormEdit({
+    const pointPresenter = new PointPresenter({
+      pointListContainer: this.#pointListComponent.element,
+      onFavoritesChange: this.#handleDataChange, onModeChange: this.#handleModeChange
+    });
+    pointPresenter.init({
       point,
-      type,
-      destination,
-      offers,
       types,
       destinations,
-      onCloseClick,
-      onFormSubmit
+      destinationModel: this.#destinationModel,
+      pointOptionsModel: this.#pointOptionsModel
     });
-    render(pointView, this.#pointListComponent.element);
+    this.#pointPresenters.set(point.id, pointPresenter);
+  }
 
-    const escKeyDownHandler = (evt) => {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        replace(pointView, pointFormEdit);
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    };
-
-    function onEditClick() {
-      replace(pointFormEdit, pointView);
-      document.addEventListener('keydown', escKeyDownHandler);
-    }
-
-    function onCloseClick() {
-      replace(pointView, pointFormEdit);
-      document.removeEventListener('keydown', escKeyDownHandler);
-    }
-
-    function onFormSubmit() {
-      replace(pointView, pointFormEdit);
-      document.removeEventListener('keydown', escKeyDownHandler);
+  #renderPointList({filterType = FilterType.EVERYTHING, points, types, destinations, mainContainer}) {
+    if (points.length > 0) {
+      points.forEach((point) => this.#renderPoint({point, types, destinations}));
+      render(this.#pointListComponent, mainContainer);
+    } else {
+      render(new EmptyListView(filterType), this.#container.querySelector('.trip-events'));
     }
   }
 
-  onFilterChange = (evt) => {
-    if (evt.target.name === 'trip-filter') {
-
-      this.#clearPointList();
-      this.#clearFilterMessage();
-
-      render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
-
-      const types = this.#pointOptionsModel.getAllTypes();
-      const destinations = this.#destinationModel.getDestinations();
-      const points = Object.entries(filter).filter(([filterType,]) =>
-        filterType === evt.target.value).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
-
-      this.#renderPointList({filterType: evt.target.value, points, types, destinations});
-
-    }
-  };
+  #renderPointBoard({types, destinations, mainContainer, headerContainer}) {
+    render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
+    render(new FilterView(this.handleFilterChange), headerContainer.querySelector('.trip-controls__filters'));
+    render(new SortView(), mainContainer);
+    this.#renderPointList({points: this.points, types, destinations, mainContainer});
+  }
 
   #clearPointList() {
     if (document.querySelector('.trip-events__list')) {
@@ -126,6 +87,44 @@ export default class MainPresenter {
       this.#emptyList.removeElement();
     }
   }
+
+
+  handleFilterChange = (evt) => {
+    if (evt.target.name === 'trip-filter') {
+
+      this.#clearPointList();
+      this.#clearFilterMessage();
+
+      render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
+
+      const types = this.#pointOptionsModel.getAllTypes();
+      const destinations = this.#destinationModel.getDestinations();
+      const points = Object.entries(filter).filter(([filterType,]) =>
+        filterType === evt.target.value).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
+
+      this.#renderPointList({
+        filterType: evt.target.value,
+        points,
+        types,
+        destinations,
+        mainContainer: this.#mainContainer
+      });
+    }
+  };
+
+  #handleDataChange = (updatePoint) => {
+    const types = this.#pointOptionsModel.getAllTypes();
+    const destinations = this.#destinationModel.getDestinations();
+    this.points = updateItem(this.points, updatePoint);
+    this.#pointPresenters.get(updatePoint.id).init({
+      point: updatePoint, types, destinations, destinationModel: this.#destinationModel,
+      pointOptionsModel: this.#pointOptionsModel
+    });
+  };
+
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
 }
 
 
