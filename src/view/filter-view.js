@@ -21,7 +21,7 @@ export default class FilterView extends AbstractView {
   constructor(onChange) {
     super();
     this.#handleFilterChange = onChange;
-    this.element.addEventListener('click', this.#filterChangeHandler);
+    this.element.addEventListener('change', this.#filterChangeHandler);
   }
 
   get template() {

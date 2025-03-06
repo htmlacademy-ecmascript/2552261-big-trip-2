@@ -5,11 +5,13 @@ import TripInfoView from '../view/trip-info-view';
 import FilterView from '../view/filter-view';
 import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
-import {render} from '../framework/render';
+import {render, replace} from '../framework/render';
 import {RenderPosition} from '../framework/render';
 import {FilterType} from '../const';
 import {filter} from '../utils/filter';
 import {SORT_TYPES} from '../const';
+import {SortType} from '../const';
+import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
@@ -21,6 +23,12 @@ export default class MainPresenter {
   #pointModel;
   #pointOptionsModel;
   #destinationModel;
+  #currentSortType = SortType.SORT_DAY;
+  #sortComponent;
+  #sourcedBoardPoints = [];
+  #currentBoardPoints = [];
+  #types;
+  #destinations;
 
   constructor(container, pointModel, pointOptionsModel, destinationModel) {
     this.#container = container;
@@ -29,16 +37,18 @@ export default class MainPresenter {
     this.#destinationModel = destinationModel;
     this.#mainContainer = this.#container.querySelector('.trip-events');
     this.#headerContainer = this.#container.querySelector('.trip-main');
+    this.#types = this.#pointOptionsModel.getAllTypes();
+    this.#destinations = this.#destinationModel.getDestinations();
   }
 
   init() {
     this.points = [...this.#pointModel.getPoints()];
-    const types = this.#pointOptionsModel.getAllTypes();
-    const destinations = this.#destinationModel.getDestinations();
+    this.#sourcedBoardPoints = [...this.#pointModel.getPoints()];
+    this.#currentBoardPoints = [...this.#pointModel.getPoints()];
 
     this.#renderPointBoard({
-      types,
-      destinations,
+      types: this.#types,
+      destinations: this.#destinations,
       mainContainer: this.#mainContainer,
       headerContainer: this.#headerContainer
     });
@@ -70,15 +80,16 @@ export default class MainPresenter {
 
   #renderPointBoard({types, destinations, mainContainer, headerContainer}) {
     render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
-    render(new FilterView(this.handleFilterChange), headerContainer.querySelector('.trip-controls__filters'));
-    render(new SortView(SORT_TYPES, this.#handleSortTypeChange), mainContainer);
-    this.#renderPointList({points: this.points, types, destinations, mainContainer});
+    render(new FilterView(this.#handleFilterChange), headerContainer.querySelector('.trip-controls__filters'));
+    this.#renderSort();
+    this.#sortPoints(SortType.SORT_DAY);
+    this.#renderPointList({points: this.#currentBoardPoints, types, destinations, mainContainer});
   }
 
   #clearPointList() {
     if (document.querySelector('.trip-events__list')) {
-      document.querySelector('.trip-events__list').remove();
-      this.#pointListComponent.removeElement();
+      this.#pointPresenters.forEach((presenter) => presenter.destroy());
+      this.#pointPresenters.clear();
     }
   }
 
@@ -89,8 +100,7 @@ export default class MainPresenter {
     }
   }
 
-
-  handleFilterChange = (evt) => {
+  #handleFilterChange = (evt) => {
     if (evt.target.name === 'trip-filter') {
 
       this.#clearPointList();
@@ -98,27 +108,64 @@ export default class MainPresenter {
 
       render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
 
-      const types = this.#pointOptionsModel.getAllTypes();
-      const destinations = this.#destinationModel.getDestinations();
       const points = Object.entries(filter).filter(([filterType,]) =>
         filterType === evt.target.value).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
+      this.#currentBoardPoints = points;
 
+      this.#replaceSortComponent();
+      this.#sortPoints(SortType.SORT_DAY);
       this.#renderPointList({
         filterType: evt.target.value,
-        points,
-        types,
-        destinations,
+        points: this.#currentBoardPoints,
+        types: this.#types,
+        destinations: this.#destinations,
         mainContainer: this.#mainContainer
       });
     }
   };
 
+  #renderSort() {
+    this.#sortComponent = new SortView({
+      sortTypes: SORT_TYPES,
+      onSortTypeChange: this.#handleSortTypeChange,
+      pointListLength: this.#currentBoardPoints.length
+    });
+    render(this.#sortComponent, this.#mainContainer);
+  }
+
+  #sortPoints(sortType) {
+    switch (sortType) {
+      case SortType.SORT_DAY:
+        this.#currentBoardPoints.sort(sortByDay);
+        break;
+      case SortType.SORT_TIME:
+        this.#currentBoardPoints.sort(sortByTime);
+        break;
+      case SortType.SORT_PRICE:
+        this.#currentBoardPoints.sort(sortByPrice);
+        break;
+    }
+    this.#currentSortType = sortType;
+  }
+
+  #replaceSortComponent() {
+    const newSortComponent = new SortView({
+      sortTypes: SORT_TYPES,
+      onSortTypeChange: this.#handleSortTypeChange,
+      pointListLength: this.#currentBoardPoints.length
+    });
+    replace(newSortComponent, this.#sortComponent);
+    this.#sortComponent = newSortComponent;
+  }
+
   #handleDataChange = (updatePoint) => {
-    const types = this.#pointOptionsModel.getAllTypes();
-    const destinations = this.#destinationModel.getDestinations();
     this.points = updateItem(this.points, updatePoint);
+    this.#sourcedBoardPoints = updateItem(this.points, updatePoint);
     this.#pointPresenters.get(updatePoint.id).init({
-      point: updatePoint, types, destinations, destinationModel: this.#destinationModel,
+      point: updatePoint,
+      types: this.#types,
+      destinations: this.#destinations,
+      destinationModel: this.#destinationModel,
       pointOptionsModel: this.#pointOptionsModel
     });
   };
@@ -127,8 +174,18 @@ export default class MainPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
-  #handleSortTypeChange = () => {
-
+  #handleSortTypeChange = (sortType) => {
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+    this.#sortPoints(sortType);
+    this.#clearPointList();
+    this.#renderPointList({
+      points: this.#currentBoardPoints,
+      types: this.#types,
+      destinations: this.#destinations,
+      mainContainer: this.#mainContainer
+    });
   };
 }
 
