@@ -1,4 +1,4 @@
-import {FilterType} from '../../const';
+import {FilterType} from '../const';
 import {getDate} from './util';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';

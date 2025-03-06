@@ -1,11 +1,7 @@
 import {render, replace} from '../framework/render';
 import PointView from '../view/point-view';
 import PointFormEdit from '../view/point-form-edit';
-
-const Mode = {
-  DEFAULT: 'DEFAULT',
-  EDITING: 'EDITING',
-};
+import {Mode} from '../const';
 
 export default class PointPresenter {
 

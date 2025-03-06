@@ -7,8 +7,9 @@ import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
 import {render} from '../framework/render';
 import {RenderPosition} from '../framework/render';
-import {FilterType} from '../../const';
+import {FilterType} from '../const';
 import {filter} from '../utils/filter';
+import {SORT_TYPES} from '../const';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
@@ -70,7 +71,7 @@ export default class MainPresenter {
   #renderPointBoard({types, destinations, mainContainer, headerContainer}) {
     render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
     render(new FilterView(this.handleFilterChange), headerContainer.querySelector('.trip-controls__filters'));
-    render(new SortView(), mainContainer);
+    render(new SortView(SORT_TYPES, this.#handleSortTypeChange), mainContainer);
     this.#renderPointList({points: this.points, types, destinations, mainContainer});
   }
 
@@ -124,6 +125,10 @@ export default class MainPresenter {
 
   #handleModeChange = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
+
+  #handleSortTypeChange = () => {
+
   };
 }
 

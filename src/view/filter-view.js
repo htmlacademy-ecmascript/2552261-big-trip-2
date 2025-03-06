@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view';
-import {FilterType} from '../../const';
+import {FilterType} from '../const';
 
 function createListFilterItemTemplate(filterType) {
   return `<div class="trip-filters__filter">
