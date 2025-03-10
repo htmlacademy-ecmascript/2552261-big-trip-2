@@ -8,11 +8,11 @@ export default class PointOptionsModel {
   }
 
   getAllTypes() {
-    return this.options.map((option) => option.type.type);
+    return this.options.map((option) => option.type);
   }
 
   getOffersByType(type) {
-    return this.options.find((obj) => obj.type.type.localeCompare(type) === 0)?.offers;
+    return this.options.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
   }
 
   getOffersById(id) {

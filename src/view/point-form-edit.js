@@ -1,9 +1,9 @@
 import {formatDate, formatString, changeFirstLetter} from '../utils/util';
 import AbstractView from '../framework/view/abstract-view';
 
-function createEventTypeItem(types) {
+function createEventTypeItem(types, point) {
   return types.map((type) => `<div class="event__type-item">
-<input id="event-type-${type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}">
+<input id="event-type-${type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}" ${type === point.type ? 'checked' : ''}>
   <label class="event__type-label  event__type-label&#45;&#45;${type}" for="event-type-${type}-1">${changeFirstLetter(type)}</label>
  </div>`).join('');
 }
@@ -30,7 +30,7 @@ function createEventHeaderTemplate({point, type, types, destination, destination
                     <div class="event__type-list">
                       <fieldset class="event__type-group">
                         <legend class="visually-hidden">Event type</legend>
-${createEventTypeItem(types)}
+${createEventTypeItem(types, point)}
                       </fieldset>
                     </div>
                   </div>
@@ -91,9 +91,9 @@ function createEventPhotoTemplate(pictures) {
   return pictures.map(({src}) => `<img class="event__photo" src="${src}" alt="Event photo">`).join('');
 }
 
-function createOffersItemTemplate(offers) {
-  return offers.map(({title, price}) => `<div class="event__offer-selector">
-                        <input class="event__offer-checkbox  visually-hidden" id="event-${formatString(title)}" type="checkbox" name="event-${formatString(title)}">
+function createOffersItemTemplate(offers, point) {
+  return offers.map(({id, title, price}) => `<div class="event__offer-selector">
+                        <input class="event__offer-checkbox  visually-hidden" id="event-${formatString(title)}" type="checkbox" name="event-${formatString(title)}"   ${point.offers.some((offer) => offer === id) ? 'checked' : ''}>
                         <label class="event__offer-label" for="event-${formatString(title)}">
                           <span class="event__offer-title">${title}</span>
                           &plus;&euro;&nbsp;
@@ -102,13 +102,13 @@ function createOffersItemTemplate(offers) {
                       </div>`).join('');
 }
 
-function createPointOffersTemplate(offers) {
+function createPointOffersTemplate(offers, point) {
   const currentOffers = offers;
 
   return `<section class="event__section  event__section--offers">
                        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
                        <div class="event__available-offers">
-                        ${createOffersItemTemplate(currentOffers)}
+                        ${createOffersItemTemplate(currentOffers, point)}
                         </div>
                       </section>`;
 }
@@ -118,7 +118,7 @@ function createPointEditTemplate({point, type, offers, destination, types, desti
 <form class="event event--edit" action="#" method="post">
 ${createEventHeaderTemplate({point, type, types, destination, destinations})}
 <section class="event__details">
-${createPointOffersTemplate(offers)}
+${createPointOffersTemplate(offers, point)}
 ${createEventDestinationTemplate(destination)}
 </section>
 </form>
