@@ -1,5 +1,6 @@
 import {formatDate, formatString, changeFirstLetter} from '../utils/util';
-import AbstractView from '../framework/view/abstract-view';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view';
+import {getTypeImage} from '../utils/point';
 
 function createEventTypeItem(types, point) {
   return types.map((type) => `<div class="event__type-item">
@@ -125,7 +126,7 @@ ${createEventDestinationTemplate(destination)}
 </li>`;
 }
 
-export default class PointFormEdit extends AbstractView {
+export default class PointFormEdit extends AbstractStatefulView {
 
   #point;
   #type;
@@ -136,10 +137,9 @@ export default class PointFormEdit extends AbstractView {
   #handleFormSubmit;
   #handleFormClose;
 
-  constructor({point, type, destination, offers, types, destinations, onFormSubmit, onCloseClick}) {
+  constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick}) {
     super();
-    this.#point = point;
-    this.#type = type;
+    this._setState(PointFormEdit.parsePointToState(point));
     this.#destination = destination;
     this.#offers = offers;
     this.#types = types;
@@ -147,16 +147,39 @@ export default class PointFormEdit extends AbstractView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
     this.#offers = offers;
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
-    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
-    this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
+    this._restoreHandlers();
   }
 
   get template() {
     return createPointEditTemplate({
-      point: this.#point, type: this.#type,
-      offers: this.#offers, destination: this.#destination, types: this.#types, destinations: this.#destinations
+      point: this._state, type: getTypeImage(this._state),
+      offers: this.#getOffersByType(this._state.type), destination: this.#destination, types: this.#types, destinations: this.#destinations
     });
+  }
+
+  _restoreHandlers() {
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
+    this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
+    this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
+  }
+
+  static parsePointToState(point) {
+    return {
+      ...point,
+    };
+  }
+
+  static parseStateToPoint(state) {
+    return {...state};
+  }
+
+  reset(point) {
+    {
+      this.updateElement(
+        PointFormEdit.parsePointToState(point),
+      );
+    }
   }
 
   #formSubmitHandler = (evt) => {
@@ -170,6 +193,15 @@ export default class PointFormEdit extends AbstractView {
     this.#handleFormClose();
     this.#resetForm();
   };
+
+  #pointTypeChangeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({type: evt.target.value});
+  };
+
+  #getOffersByType(type) {
+    return this.#offers.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
+  }
 
   #resetForm() {
     this.element.querySelector('.event--edit').reset();

@@ -18,5 +18,12 @@ function sortByTime(pointA, pointB) {
   return pointBdateTo.diff(pointBdateFrom, 'minute') - pointAdateTo.diff(pointAdateFrom, 'minute');
 }
 
-export {sortByDay, sortByPrice, sortByTime};
+function getTypeImage(point) {
+  return {
+    type: point.type,
+    image: `img/icons/${point.type}.png`
+  };
+}
+
+export {sortByDay, sortByPrice, sortByTime, getTypeImage};
 

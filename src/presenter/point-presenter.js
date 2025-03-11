@@ -3,6 +3,7 @@ import PointView from '../view/point-view';
 import {render, replace} from '../framework/render';
 import {remove} from '../framework/render';
 import {Mode} from '../const';
+import {getTypeImage} from '../utils/point';
 
 export default class PointPresenter {
 
@@ -21,16 +22,9 @@ export default class PointPresenter {
     this.#handleModeChange = onModeChange;
   }
 
-  #getTypeImage(point) {
-    return {
-      type: point.type,
-      image: `img/icons/${point.type}.png`
-    };
-  }
-
   init({point, types, destinations, destinationModel, pointOptionsModel}) {
     this.#point = point;
-    const type = this.#getTypeImage(this.#point);
+    const type = getTypeImage(this.#point);
     const destination = destinationModel.getDestinationById(this.#point.destination);
     const offers = pointOptionsModel.getOffersByType(this.#point.type);
 
@@ -48,9 +42,9 @@ export default class PointPresenter {
 
     this.#pointFormEdit = new PointFormEdit({
       point,
-      type,
+
       destination,
-      offers,
+      offers: pointOptionsModel.getOptions(),
       types,
       destinations,
       onCloseClick: this.#handleCloseClick,
@@ -85,6 +79,7 @@ export default class PointPresenter {
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
+      this.#pointFormEdit.reset(this.#point);
       this.#replaceFormToPoint();
     }
   };
@@ -105,6 +100,7 @@ export default class PointPresenter {
   };
 
   #handleCloseClick = () => {
+    this.#pointFormEdit.reset(this.#point);
     this.#replaceFormToPoint();
   };
 
