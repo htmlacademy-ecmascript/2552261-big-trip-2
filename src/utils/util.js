@@ -5,14 +5,8 @@ import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-
-function parseDate(date) {
-  const [day, month, year, hour, minute] = date.split(/\/|\s|:/);
-  return new Date(Date.UTC(year, month - 1, day, hour, minute));
-}
-
 function formatDate(date) {
-  return dayjs.tz(date,'Europe/Moscow').format('YY/MM/DD HH:mm');
+  return dayjs.tz(date,'Europe/Moscow').format('DD/MM/YY HH:mm');
 }
 
 function getDate(date) {
@@ -21,18 +15,13 @@ function getDate(date) {
 
 function getShortDate(date) {
   if (date instanceof Date) {
-    const options = {month: 'short'};
-    const monthName = date.toLocaleString('en-EN', options).toUpperCase();
-    const dayNumber = date.getUTCDate().toString().padStart(2, '0');
-    return `${monthName} ${dayNumber}`;
+    return dayjs(date).format('MMM DD');
   }
 }
 
 function getShortTime(date) {
   if (date instanceof Date) {
-    const hour = date.getUTCHours().toString().padStart(2, '0');
-    const minute = date.getUTCMinutes().toString().padStart(2, '0');
-    return `${hour}:${minute}`;
+    return dayjs.utc(date).format('HH:mm');
   }
 }
 
@@ -62,4 +51,4 @@ function changeFirstLetter(string) {
   return string.replace(/^\w/, string.charAt(0).toUpperCase());
 }
 
-export {parseDate, getDate, getTimeDifference, getShortTime, getShortDate, formatDate, formatString, changeFirstLetter};
+export {getDate, getTimeDifference, getShortTime, getShortDate, formatDate, formatString, changeFirstLetter};
