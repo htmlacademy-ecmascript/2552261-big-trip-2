@@ -128,8 +128,6 @@ ${createEventDestinationTemplate(destination)}
 
 export default class PointFormEdit extends AbstractStatefulView {
 
-  #point;
-  #type;
   #destination;
   #offers;
   #types;
@@ -141,7 +139,6 @@ export default class PointFormEdit extends AbstractStatefulView {
     super();
     this._setState(PointFormEdit.parsePointToState(point));
     this.#destination = destination;
-    this.#offers = offers;
     this.#types = types;
     this.#destinations = destinations;
     this.#handleFormSubmit = onFormSubmit;
@@ -152,8 +149,12 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   get template() {
     return createPointEditTemplate({
-      point: this._state, type: getTypeImage(this._state),
-      offers: this.#getOffersByType(this._state.type), destination: this.#destination, types: this.#types, destinations: this.#destinations
+      point: this._state,
+      type: getTypeImage(this._state),
+      offers: this.#getOffersByType(this._state.type),
+      destination: this.#getDestinationById(this._state.destination),
+      types: this.#types,
+      destinations: this.#destinations
     });
   }
 
@@ -162,16 +163,14 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('change', this.#pointDestinationChangeHandler);
+    this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
   }
 
   static parsePointToState(point) {
     return {
       ...point,
     };
-  }
-
-  static parseStateToPoint(state) {
-    return {...state};
   }
 
   reset(point) {
@@ -196,11 +195,34 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #pointTypeChangeHandler = (evt) => {
     evt.preventDefault();
+    this._state.offers = [];
     this.updateElement({type: evt.target.value});
+  };
+
+  #pointDestinationChangeHandler = (evt) => {
+    evt.preventDefault();
+    const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
+    this.updateElement({destination: newDestination.id});
+  };
+
+  #pointOffersListChangeHandler = (evt) => {
+    evt.preventDefault();
+
+    const chosenOffer = this.#getOffersByType(this._state.type).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0])).id;
+
+    if (this._state.offers.indexOf(chosenOffer) === -1) {
+      this._state.offers.push(chosenOffer);
+    } else {
+      this._state.offers.splice(this._state.offers.indexOf(chosenOffer), 1);
+    }
   };
 
   #getOffersByType(type) {
     return this.#offers.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
+  }
+
+  #getDestinationById(id) {
+    return this.#destinations.find((obj) => obj.id.localeCompare(id) === 0);
   }
 
   #resetForm() {
