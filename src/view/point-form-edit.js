@@ -1,4 +1,4 @@
-import {formatDate, formatString, changeFirstLetter} from '../util';
+import {formatDate, formatString, changeFirstLetter} from '../utils/util';
 import AbstractView from '../framework/view/abstract-view';
 
 function createEventTypeItem(types) {
@@ -118,8 +118,8 @@ function createPointEditTemplate({point, type, offers, destination, types, desti
 <form class="event event--edit" action="#" method="post">
 ${createEventHeaderTemplate({point, type, types, destination, destinations})}
 <section class="event__details">
-${createEventDestinationTemplate(destination)}
 ${createPointOffersTemplate(offers)}
+${createEventDestinationTemplate(destination)}
 </section>
 </form>
 </li>`;

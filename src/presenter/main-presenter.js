@@ -1,13 +1,22 @@
-import SortView from '../view/sort-view';
-import PointFormEdit from '../view/point-form-edit';
+import PointPresenter from './point-presenter';
 import PointListView from '../view/point-list-view';
-import PointView from '../view/point-view';
+import EmptyListView from '../view/empty-points-list-view';
+import TripInfoView from '../view/trip-info-view';
+import FilterView from '../view/filter-view';
+import SortView from '../view/sort-view';
+import {updateItem} from '../utils/common';
 import {render} from '../framework/render';
-import {replace} from '../framework/render';
+import {RenderPosition} from '../framework/render';
+import {FilterType} from '../../const';
+import {filter} from '../utils/filter';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
+  #pointPresenters = new Map();
+  #emptyList = new EmptyListView();
   #container;
+  #mainContainer;
+  #headerContainer;
   #pointModel;
   #pointOptionsModel;
   #destinationModel;
@@ -17,69 +26,105 @@ export default class MainPresenter {
     this.#pointModel = pointModel;
     this.#pointOptionsModel = pointOptionsModel;
     this.#destinationModel = destinationModel;
+    this.#mainContainer = this.#container.querySelector('.trip-events');
+    this.#headerContainer = this.#container.querySelector('.trip-main');
   }
 
   init() {
-    this.points = this.#pointModel.getPoints();
+    this.points = [...this.#pointModel.getPoints()];
     const types = this.#pointOptionsModel.getAllTypes();
     const destinations = this.#destinationModel.getDestinations();
 
-    render(new SortView(), this.#container);
-    render(this.#pointListComponent, this.#container);
-
-    for (let i = 0; i < this.points.length; i++) {
-      this.#renderPoint({types, destinations, index: i});
-    }
-  }
-
-  #getTypeImage(points, index) {
-    return {
-      type: this.points[index].type,
-      image: `img/icons/${this.points[index].type}.png`
-    };
-  }
-
-  #renderPoint({types, destinations, index}) {
-    const point = this.points[index];
-    const type = this.#getTypeImage(this.points, index);
-    const destination = this.#destinationModel.getDestinationById(this.points[index].destination);
-    const offers = this.#pointOptionsModel.getOffersByType(this.points[index].type);
-    const pointView = new PointView({point, type, destination, offers, onEditClick});
-    const pointFormEdit = new PointFormEdit({
-      point,
-      type,
-      destination,
-      offers,
+    this.#renderPointBoard({
       types,
       destinations,
-      onCloseClick,
-      onFormSubmit
+      mainContainer: this.#mainContainer,
+      headerContainer: this.#headerContainer
     });
-    render(pointView, this.#pointListComponent.element);
+  }
 
-    const escKeyDownHandler = (evt) => {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        replace(pointView, pointFormEdit);
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    };
+  #renderPoint({point, types, destinations}) {
+    const pointPresenter = new PointPresenter({
+      pointListContainer: this.#pointListComponent.element,
+      onFavoritesChange: this.#handleDataChange, onModeChange: this.#handleModeChange
+    });
+    pointPresenter.init({
+      point,
+      types,
+      destinations,
+      destinationModel: this.#destinationModel,
+      pointOptionsModel: this.#pointOptionsModel
+    });
+    this.#pointPresenters.set(point.id, pointPresenter);
+  }
 
-    function onEditClick() {
-      replace(pointFormEdit, pointView);
-      document.addEventListener('keydown', escKeyDownHandler);
-    }
-
-    function onCloseClick() {
-      replace(pointView, pointFormEdit);
-      document.removeEventListener('keydown', escKeyDownHandler);
-    }
-
-    function onFormSubmit() {
-      replace(pointView, pointFormEdit);
-      document.removeEventListener('keydown', escKeyDownHandler);
+  #renderPointList({filterType = FilterType.EVERYTHING, points, types, destinations, mainContainer}) {
+    if (points.length > 0) {
+      points.forEach((point) => this.#renderPoint({point, types, destinations}));
+      render(this.#pointListComponent, mainContainer);
+    } else {
+      render(new EmptyListView(filterType), this.#container.querySelector('.trip-events'));
     }
   }
+
+  #renderPointBoard({types, destinations, mainContainer, headerContainer}) {
+    render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
+    render(new FilterView(this.handleFilterChange), headerContainer.querySelector('.trip-controls__filters'));
+    render(new SortView(), mainContainer);
+    this.#renderPointList({points: this.points, types, destinations, mainContainer});
+  }
+
+  #clearPointList() {
+    if (document.querySelector('.trip-events__list')) {
+      document.querySelector('.trip-events__list').remove();
+      this.#pointListComponent.removeElement();
+    }
+  }
+
+  #clearFilterMessage() {
+    if (document.querySelector('.trip-events__msg')) {
+      document.querySelector('.trip-events__msg').remove();
+      this.#emptyList.removeElement();
+    }
+  }
+
+
+  handleFilterChange = (evt) => {
+    if (evt.target.name === 'trip-filter') {
+
+      this.#clearPointList();
+      this.#clearFilterMessage();
+
+      render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
+
+      const types = this.#pointOptionsModel.getAllTypes();
+      const destinations = this.#destinationModel.getDestinations();
+      const points = Object.entries(filter).filter(([filterType,]) =>
+        filterType === evt.target.value).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
+
+      this.#renderPointList({
+        filterType: evt.target.value,
+        points,
+        types,
+        destinations,
+        mainContainer: this.#mainContainer
+      });
+    }
+  };
+
+  #handleDataChange = (updatePoint) => {
+    const types = this.#pointOptionsModel.getAllTypes();
+    const destinations = this.#destinationModel.getDestinations();
+    this.points = updateItem(this.points, updatePoint);
+    this.#pointPresenters.get(updatePoint.id).init({
+      point: updatePoint, types, destinations, destinationModel: this.#destinationModel,
+      pointOptionsModel: this.#pointOptionsModel
+    });
+  };
+
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
 }
 
 

@@ -1,4 +1,4 @@
-import * as utils from '../util';
+import * as utils from '../utils/util';
 import AbstractView from '../framework/view/abstract-view';
 
 function createOffersTemplate(offers) {
@@ -58,14 +58,18 @@ export default class PointView extends AbstractView{
   #destination;
   #offers;
   #handleEditClick;
+  #handleFavoritesClick;
 
-  constructor({point, type, destination, offers, onEditClick}) {
+  constructor({point, type, destination, offers, onEditClick, onFavoritesClick}) {
     super();
     this.#point = point;
     this.#type = type;
     this.#destination = destination;
     this.#handleEditClick = onEditClick;
-    this.#offers = offers;this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
+    this.#handleFavoritesClick = onFavoritesClick;
+    this.#offers = offers;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editClickHandler);
+    this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#favoritesClickHandler);
   }
 
   get template() {
@@ -75,5 +79,11 @@ export default class PointView extends AbstractView{
   #editClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleEditClick();
+  };
+
+  #favoritesClickHandler = (evt) => {
+    evt.preventDefault();
+    this.element.querySelector('.event__favorite-btn').classList.toggle('event__favorite-btn--active');
+    this.#handleFavoritesClick();
   };
 }
