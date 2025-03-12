@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view';
-import {FilterType} from '../../const';
+import {FilterType} from '../const';
 
 function createListFilterItemTemplate(filterType) {
   return `<div class="trip-filters__filter">
@@ -21,7 +21,7 @@ export default class FilterView extends AbstractView {
   constructor(onChange) {
     super();
     this.#handleFilterChange = onChange;
-    this.element.addEventListener('click', this.#filterChangeHandler);
+    this.element.addEventListener('change', this.#filterChangeHandler);
   }
 
   get template() {

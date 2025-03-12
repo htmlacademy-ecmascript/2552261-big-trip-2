@@ -1,11 +1,8 @@
-import {render, replace} from '../framework/render';
-import PointView from '../view/point-view';
 import PointFormEdit from '../view/point-form-edit';
-
-const Mode = {
-  DEFAULT: 'DEFAULT',
-  EDITING: 'EDITING',
-};
+import PointView from '../view/point-view';
+import {render, replace} from '../framework/render';
+import {remove} from '../framework/render';
+import {Mode} from '../const';
 
 export default class PointPresenter {
 
@@ -96,6 +93,11 @@ export default class PointPresenter {
     if (this.#mode !== Mode.DEFAULT) {
       this.#replaceFormToPoint();
     }
+  }
+
+  destroy() {
+    remove(this.#pointView);
+    remove(this.#pointFormEdit);
   }
 
   #handleEditClick = () => {
