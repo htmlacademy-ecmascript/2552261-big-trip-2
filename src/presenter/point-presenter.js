@@ -4,6 +4,8 @@ import {render, replace} from '../framework/render';
 import {remove} from '../framework/render';
 import {Mode} from '../const';
 import {getTypeImage} from '../utils/point';
+import {UpdateType} from '../const';
+import {UserAction} from '../const';
 
 export default class PointPresenter {
 
@@ -48,7 +50,8 @@ export default class PointPresenter {
       types,
       destinations,
       onCloseClick: this.#handleCloseClick,
-      onFormSubmit: this.#handleFormSubmit
+      onFormSubmit: this.#handleFormSubmit,
+      onDeleteClick: this.#handleDeleteClick
     });
 
     if (prevPointView === null || prevPointEdit === null) {
@@ -111,5 +114,13 @@ export default class PointPresenter {
   #handleFavoritesClick = () => {
     this.#point.isFavorite = !this.#point.isFavorite;
     this.#handleDataChange(this.#point);
+  };
+
+  #handleDeleteClick = (point) => {
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      point,
+    );
   };
 }

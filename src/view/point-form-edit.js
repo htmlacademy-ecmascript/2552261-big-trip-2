@@ -66,7 +66,7 @@ ${createEventTypeItem(types, point)}
                   </div>
 
                   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-                  <button class="event__reset-btn" type="reset">Cancel</button>
+                  <button class="event__reset-btn" type="reset">Delete</button>
                   <button class="event__rollup-btn" type="button">
                     <span class="visually-hidden">Open event</span>
                   </button>
@@ -137,9 +137,10 @@ export default class PointFormEdit extends AbstractStatefulView {
   #destinations;
   #handleFormSubmit;
   #handleFormClose;
+  #handleDeleteClick;
   #datepicker = null;
 
-  constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick}) {
+  constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick, onDeleteClick}) {
     super();
     this._setState(PointFormEdit.parsePointToState(point));
     this.#destination = destination;
@@ -147,6 +148,7 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.#destinations = destinations;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
+    this.#handleDeleteClick = onDeleteClick;
     this.#offers = offers;
     this._restoreHandlers();
   }
@@ -169,6 +171,7 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
     this.#setDatepicker('event-start-time-1');
     this.#setDatepicker('event-end-time-1');
   }
@@ -263,6 +266,12 @@ export default class PointFormEdit extends AbstractStatefulView {
         this._setState({dateTo: luxonDate.toISO()});
         break;
     }
+  };
+
+  #deleteClickHandler = (evt) => {
+    evt.preventDefault();
+    console.log(this._state.id);
+    this.#handleDeleteClick(this._state);
   };
 
   #resetForm() {
