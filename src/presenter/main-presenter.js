@@ -25,7 +25,6 @@ export default class MainPresenter {
   #destinationModel;
   #currentSortType = SortType.SORT_DAY;
   #sortComponent;
-  #sourcedBoardPoints = [];
   #currentBoardPoints = [];
   #types;
   #destinations;
@@ -42,8 +41,6 @@ export default class MainPresenter {
   }
 
   init() {
-    this.points = [...this.#pointModel.getPoints()];
-    this.#sourcedBoardPoints = [...this.#pointModel.getPoints()];
     this.#currentBoardPoints = [...this.#pointModel.getPoints()];
 
     this.#renderPointBoard({
@@ -52,6 +49,10 @@ export default class MainPresenter {
       mainContainer: this.#mainContainer,
       headerContainer: this.#headerContainer
     });
+  }
+
+  get points() {
+    return this.#pointModel.points;
   }
 
   #renderPoint({point, types, destinations}) {
@@ -160,7 +161,6 @@ export default class MainPresenter {
 
   #handleDataChange = (updatePoint) => {
     this.points = updateItem(this.points, updatePoint);
-    this.#sourcedBoardPoints = updateItem(this.points, updatePoint);
     this.#pointPresenters.get(updatePoint.id).init({
       point: updatePoint,
       types: this.#types,
