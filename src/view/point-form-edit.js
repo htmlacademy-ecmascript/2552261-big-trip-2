@@ -1,6 +1,9 @@
 import {formatDate, formatString, changeFirstLetter} from '../utils/util';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import {getTypeImage} from '../utils/point';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+import {DateTime} from 'luxon';
 
 function createEventTypeItem(types, point) {
   return types.map((type) => `<div class="event__type-item">
@@ -134,6 +137,7 @@ export default class PointFormEdit extends AbstractStatefulView {
   #destinations;
   #handleFormSubmit;
   #handleFormClose;
+  #datepicker = null;
 
   constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick}) {
     super();
@@ -165,6 +169,25 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
+    this.#setDatepicker('event-start-time-1');
+    this.#setDatepicker('event-end-time-1');
+  }
+
+  #setDatepicker(element) {
+    let defaultDate = null;
+    if (element === 'event-start-time-1') {
+      defaultDate = this._state.dateFrom;
+    } else {
+      defaultDate = this._state.dateTo;
+    }
+    this.#datepicker = flatpickr(this.element.querySelector(`#${element}`),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: defaultDate,
+        onChange: this.#dueDateChangeHandler,
+      },
+    );
   }
 
   static parsePointToState(point) {
@@ -195,7 +218,8 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #pointTypeChangeHandler = (evt) => {
     evt.preventDefault();
-    this._state.offers = [];
+    const update = {offers: []};
+    this._setState(update);
     this.updateElement({type: evt.target.value});
   };
 
@@ -211,9 +235,12 @@ export default class PointFormEdit extends AbstractStatefulView {
     const chosenOffer = this.#getOffersByType(this._state.type).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0])).id;
 
     if (this._state.offers.indexOf(chosenOffer) === -1) {
-      this._state.offers.push(chosenOffer);
+      const update = {offers: [chosenOffer, ...this._state.offers]};
+      this._setState(update);
     } else {
-      this._state.offers.splice(this._state.offers.indexOf(chosenOffer), 1);
+      const update = {offers: [...this._state.offers]};
+      update.offers.splice(update.offers.indexOf(chosenOffer), 1);
+      this._setState(update);
     }
   };
 
@@ -224,6 +251,19 @@ export default class PointFormEdit extends AbstractStatefulView {
   #getDestinationById(id) {
     return this.#destinations.find((obj) => obj.id.localeCompare(id) === 0);
   }
+
+  #dueDateChangeHandler = ([userDate], instance, event) => {
+    const timezone = 'Europe/Moscow';
+    const luxonDate = DateTime.fromJSDate(userDate).setZone(timezone);
+    switch (event.input.name) {
+      case 'event-start-time':
+        this._setState({dateFrom: luxonDate.toISO()});
+        break;
+      case 'event-end-time':
+        this._setState({dateTo: luxonDate.toISO()});
+        break;
+    }
+  };
 
   #resetForm() {
     this.element.querySelector('.event--edit').reset();
