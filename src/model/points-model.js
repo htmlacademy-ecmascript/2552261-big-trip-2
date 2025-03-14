@@ -27,7 +27,7 @@ export default class PointsModel extends Observable {
     if (index === -1) {
       throw new Error('Point not found');
     }
-    this.#points = this.#points.splice(index, 1, newPoint);
+    this.#points.splice(index, 1, newPoint);
     this._notify(updateType, newPoint);
   }
 }

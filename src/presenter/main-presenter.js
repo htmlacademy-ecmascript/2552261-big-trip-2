@@ -14,11 +14,13 @@ import {SortType} from '../const';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
 import {UserAction} from '../const';
 import {UpdateType} from '../const';
+import PointFormAdd from '../view/point-form-add';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
   #pointPresenters = new Map();
   #emptyList = new EmptyListView();
+  #pointFormAdd;
   #container;
   #mainContainer;
   #headerContainer;
@@ -28,6 +30,7 @@ export default class MainPresenter {
   #currentSortType = SortType.SORT_DAY;
   #sortComponent;
   #currentBoardPoints = [];
+  #editButton;
   #types;
   #destinations;
 
@@ -38,6 +41,8 @@ export default class MainPresenter {
     this.#destinationModel = destinationModel;
     this.#mainContainer = this.#container.querySelector('.trip-events');
     this.#headerContainer = this.#container.querySelector('.trip-main');
+    this.#editButton = this.#headerContainer.querySelector('.trip-main__event-add-btn');
+    this.#editButton.addEventListener('click', this.#pointAddClickHandler);
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
     pointModel.addObserver(this.#handleModelEvent);
@@ -45,7 +50,11 @@ export default class MainPresenter {
 
   init() {
     this.#currentBoardPoints = [...this.#pointModel.getPoints()];
-
+    this.#pointFormAdd = new PointFormAdd({
+      offers: this.#pointOptionsModel.getOptions(),
+      types: this.#types,
+      destinations: this.#destinations
+    });
     this.#renderPointBoard({
       types: this.#types,
       destinations: this.#destinations,
@@ -172,7 +181,14 @@ export default class MainPresenter {
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#pointModel.get(data.id).init(data);
+        this.#currentBoardPoints = updateItem(this.#currentBoardPoints, data);
+        this.#pointPresenters.get(data.id).init({
+          point: data,
+          types: this.#types,
+          destinations: this.#destinations,
+          destinationModel: this.#destinationModel,
+          pointOptionsModel: this.#pointOptionsModel
+        });
         break;
       case UpdateType.MINOR:
         this.#clearBoard();
@@ -198,17 +214,6 @@ export default class MainPresenter {
     }
   };
 
-  // #handleDataChange = (updatePoint) => {
-  //   // this.points = updateItem(this.points, updatePoint);
-  //   this.#pointPresenters.get(updatePoint.id).init({
-  //     point: updatePoint,
-  //     types: this.#types,
-  //     destinations: this.#destinations,
-  //     destinationModel: this.#destinationModel,
-  //     pointOptionsModel: this.#pointOptionsModel
-  //   });
-  // };
-
   #handleModeChange = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
@@ -226,6 +231,11 @@ export default class MainPresenter {
       destinations: this.#destinations,
       mainContainer: this.#mainContainer
     });
+  };
+
+  #pointAddClickHandler = () => {
+    this.#pointListComponent.element.insertAdjacentHTML('afterbegin', this.#pointFormAdd.template);
+    this.#editButton.disabled = true;
   };
 }
 
