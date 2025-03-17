@@ -21,7 +21,6 @@ function createEventHeaderTemplate({point, type, types, destination, destination
   const typeName = type.type;
   const dateFrom = formatDate(point.dateFrom);
   const dateTo = formatDate(point.dateTo);
-
   return `<header class="event__header">
                   <div class="event__type-wrapper">
                     <label class="event__type  event__type-btn" for="event-type-toggle-1">
@@ -61,25 +60,20 @@ ${createEventTypeItem(types, point)}
                       <span class="visually-hidden">Price</span>
                       &euro;
                     </label>
-                    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${point.basePrice}">
+                    <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${point?.basePrice ? point.basePrice : 0}">
                   </div>
 
                   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
                   <button class="event__reset-btn" type="reset">Cancel</button>
-                  <button class="event__rollup-btn" type="button">
-                    <span class="visually-hidden">Open event</span>
-                  </button>
                 </header>`;
 }
 
-function createEventDestinationTemplate(destination = {}) {
-  const {description, pictures} = destination;
-  const currentPictures = pictures;
+function createEventDestinationTemplate(destination) {
+  const {description, pictures} = destination ? destination : {};
+  const currentPictures = pictures ? pictures : [];
+  const currentDescription = description ? description : '';
 
-  const currentDescription = description;
-
-  if (!destination) {
-    return `<section class="event__section  event__section--destination">
+  return `<section class="event__section  event__section--destination" ${!destination || (pictures.length === 0 && description === '') ? 'hidden' : ''}>
                         <h3 class="event__section-title  event__section-title--destination">Destination</h3>
                         <p class="event__destination-description">${currentDescription}</p>
 
@@ -89,14 +83,10 @@ function createEventDestinationTemplate(destination = {}) {
                           </div>
                        </div>
                      </section>`;
-  }
-  return '';
 }
 
 function createEventPhotoTemplate(pictures = []) {
-  if (!pictures) {
-    return pictures.map(({src}) => `<img class="event__photo" src="${src}" alt="Event photo">`).join('');
-  }
+  return pictures.map(({src}) => `<img class="event__photo" src="${src}" alt="Event photo">`).join('');
 }
 
 function createOffersItemTemplate(offers) {
@@ -113,7 +103,7 @@ function createOffersItemTemplate(offers) {
 function createPointOffersTemplate(offers, point) {
   const currentOffers = offers;
 
-  return `<section class="event__section  event__section--offers">
+  return `<section class="event__section  event__section--offers" ${currentOffers.length > 0 ? '' : 'hidden'}>
                        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
                        <div class="event__available-offers">
                         ${createOffersItemTemplate(currentOffers, point)}
@@ -142,17 +132,18 @@ export default class PointFormAdd extends AbstractStatefulView {
   #handleFormSubmit;
   #handleFormClose;
   #handleDeleteClick;
+  #handleEscKeyDown;
   #datepicker = null;
 
-  constructor({destination, offers, types, destinations, onFormSubmit, onCloseClick, onDeleteClick}) {
+  constructor({destination, offers, types, destinations, onFormSubmit, onCloseClick, onEscKeyDawn}) {
     super();
-    this._setState({type: 'flight'});
+    this._setState({type: 'flight', offers: []});
     this.#destination = destination;
     this.#types = types;
     this.#destinations = destinations;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
-    this.#handleDeleteClick = onDeleteClick;
+    this.#handleEscKeyDown = onEscKeyDawn;
     this.#offers = offers;
     this._restoreHandlers();
   }
@@ -169,21 +160,19 @@ export default class PointFormAdd extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-    console.log('_restoreHandlers');
     this.#setDatepicker('event-start-time-1');
     this.#setDatepicker('event-end-time-1');
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
-    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
-    this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
+    // this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
+    // this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
+    // this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
-    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
 
   }
 
   #setDatepicker(element) {
-    console.log(this.element.querySelector(`#${element}`));
     let defaultDate = new Date();
     if (element === 'event-start-time-1') {
       defaultDate = this._state.dateFrom;
@@ -200,19 +189,12 @@ export default class PointFormAdd extends AbstractStatefulView {
     );
   }
 
-  static parsePointToState(point) {
-    return {
-      ...point,
-    };
-  }
 
-  // reset(point) {
-  //   {
-  //     this.updateElement(
-  //       PointFormEdit.parsePointToState(point),
-  //     );
-  //   }
-  // }
+  reset() {
+    {
+      this.updateElement({type: 'flight', destination: '', offers: []});
+    }
+  }
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
@@ -236,6 +218,7 @@ export default class PointFormAdd extends AbstractStatefulView {
   #pointDestinationChangeHandler = (evt) => {
     evt.preventDefault();
     const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
+    this._setState({destination: newDestination});
     this.updateElement({destination: newDestination.id});
   };
 
@@ -273,11 +256,6 @@ export default class PointFormAdd extends AbstractStatefulView {
         this._setState({dateTo: luxonDate.toISO()});
         break;
     }
-  };
-
-  #deleteClickHandler = (evt) => {
-    evt.preventDefault();
-    this.#handleDeleteClick(this._state);
   };
 
   #resetForm() {

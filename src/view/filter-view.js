@@ -3,7 +3,7 @@ import {FilterType} from '../const';
 
 function createListFilterItemTemplate(filterType) {
   return `<div class="trip-filters__filter">
-                  <input id="filter-${filterType.toLowerCase()}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${filterType.toLowerCase()}">
+                  <input id="filter-${filterType.toLowerCase()}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${filterType.toLowerCase()}" ${filterType.toLowerCase() === 'everything' ? 'checked' : ''}>
                   <label class="trip-filters__filter-label" for="filter-${filterType.toLowerCase()}">${filterType}</label>
                 </div>`;
 }

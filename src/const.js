@@ -11,6 +11,11 @@ const Mode = {
   EDITING: 'EDITING',
 };
 
+const MODE_FORM_ADD = {
+  DEFAULT: 'CLOSE',
+  OPEN: 'OPEN',
+};
+
 const SortType =
   {
     SORT_DAY: 'sort-day',
@@ -34,4 +39,4 @@ const UpdateType = {
 
 const SORT_TYPES = ['sort-day', 'sort-event', 'sort-time', 'sort-price', 'sort-offer'];
 
-export {FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType};
+export {FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType, MODE_FORM_ADD};

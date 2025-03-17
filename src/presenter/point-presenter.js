@@ -6,6 +6,7 @@ import {Mode} from '../const';
 import {getTypeImage} from '../utils/point';
 import {UpdateType} from '../const';
 import {UserAction} from '../const';
+import MainPresenter from "./main-presenter";
 
 export default class PointPresenter {
 
@@ -17,8 +18,10 @@ export default class PointPresenter {
   #mode = Mode.DEFAULT;
   #handleDataChange;
   #handleModeChange;
+  #resetFormAddPoint;
 
-  constructor({pointListContainer, onFavoritesChange, onModeChange}) {
+  constructor({resetFormAddPoint, pointListContainer, onFavoritesChange, onModeChange}) {
+    this.#resetFormAddPoint = resetFormAddPoint;
     this.#pointListContainer = pointListContainer;
     this.#handleDataChange = onFavoritesChange;
     this.#handleModeChange = onModeChange;
@@ -99,6 +102,7 @@ export default class PointPresenter {
   }
 
   #handleEditClick = () => {
+    this.#resetFormAddPoint();
     this.#replacePointToForm();
   };
 

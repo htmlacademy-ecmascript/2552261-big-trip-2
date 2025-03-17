@@ -5,7 +5,7 @@ import TripInfoView from '../view/trip-info-view';
 import FilterView from '../view/filter-view';
 import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
-import {render, replace} from '../framework/render';
+import {remove, render, replace} from '../framework/render';
 import {RenderPosition} from '../framework/render';
 import {FilterType} from '../const';
 import {filter} from '../utils/filter';
@@ -15,11 +15,14 @@ import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
 import {UserAction} from '../const';
 import {UpdateType} from '../const';
 import PointFormAdd from '../view/point-form-add';
+import {MODE_FORM_ADD} from '../const';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
   #pointPresenters = new Map();
   #emptyList = new EmptyListView();
+  #formAddMode = MODE_FORM_ADD.DEFAULT;
+  #filterView;
   #pointFormAdd;
   #container;
   #mainContainer;
@@ -28,6 +31,7 @@ export default class MainPresenter {
   #pointOptionsModel;
   #destinationModel;
   #currentSortType = SortType.SORT_DAY;
+  #currentFilterType = FilterType.EVERYTHING;
   #sortComponent;
   #currentBoardPoints = [];
   #editButton;
@@ -45,6 +49,7 @@ export default class MainPresenter {
     this.#editButton.addEventListener('click', this.#pointAddClickHandler);
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
+
     pointModel.addObserver(this.#handleModelEvent);
   }
 
@@ -53,8 +58,10 @@ export default class MainPresenter {
     this.#pointFormAdd = new PointFormAdd({
       offers: this.#pointOptionsModel.getOptions(),
       types: this.#types,
-      destinations: this.#destinations
+      destinations: this.#destinations,
+      onCloseClick: this.#pointFormAddCloseHandler,
     });
+
     this.#renderPointBoard({
       types: this.#types,
       destinations: this.#destinations,
@@ -80,6 +87,7 @@ export default class MainPresenter {
 
   #renderPoint({point, types, destinations}) {
     const pointPresenter = new PointPresenter({
+      resetFormAddPoint: this.#resetFormAddPoint,
       pointListContainer: this.#pointListComponent.element,
       onFavoritesChange: this.#handleViewAction, onModeChange: this.#handleModeChange
     });
@@ -104,7 +112,8 @@ export default class MainPresenter {
 
   #renderPointBoard({types, destinations, mainContainer, headerContainer}) {
     render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
-    render(new FilterView(this.#handleFilterChange), headerContainer.querySelector('.trip-controls__filters'));
+    this.#filterView = new FilterView(this.#handleFilterChange);
+    render(this.#filterView, headerContainer.querySelector('.trip-controls__filters'));
     this.#renderSort();
     this.#renderPoints({points: this.points, types, destinations, mainContainer});
   }
@@ -125,25 +134,30 @@ export default class MainPresenter {
 
   #handleFilterChange = (evt) => {
     if (evt.target.name === 'trip-filter') {
-      this.#currentSortType = SortType.SORT_DAY;
-      this.#clearBoard();
-      this.#clearFilterMessage();
-
-      render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
-
-      const points = Object.entries(filter).filter(([filterType,]) =>
-        filterType === evt.target.value).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
-      this.#currentBoardPoints = points;
-      this.#replaceSortComponent();
-      this.#renderPoints({
-        filterType: evt.target.value,
-        points: this.points,
-        types: this.#types,
-        destinations: this.#destinations,
-        mainContainer: this.#mainContainer
-      });
+      this.#changeFilterType(evt.target.value);
     }
   };
+
+  #changeFilterType(type) {
+    this.#currentFilterType = type;
+    this.#currentSortType = SortType.SORT_DAY;
+    this.#clearBoard();
+    this.#clearFilterMessage();
+
+    render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
+
+    const points = Object.entries(filter).filter(([filterType,]) =>
+      filterType === this.#currentFilterType).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
+    this.#currentBoardPoints = points;
+    this.#replaceSortComponent();
+    this.#renderPoints({
+      filterType: this.#currentFilterType,
+      points: this.points,
+      types: this.#types,
+      destinations: this.#destinations,
+      mainContainer: this.#mainContainer
+    });
+  }
 
   #renderSort() {
     this.#sortComponent = new SortView({
@@ -233,9 +247,53 @@ export default class MainPresenter {
     });
   };
 
+  resetView() {
+    if (this.#formAddMode === MODE_FORM_ADD.OPEN) {
+      this.#formAddMode = MODE_FORM_ADD.DEFAULT;
+      this.#formAddMode = MODE_FORM_ADD.DEFAULT;
+    }
+  }
+
   #pointAddClickHandler = () => {
-    this.#pointListComponent.element.insertAdjacentHTML('afterbegin', this.#pointFormAdd.template);
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+    this.#formAddMode = MODE_FORM_ADD.OPEN;
+    if (this.#currentFilterType !== FilterType.EVERYTHING) {
+      this.#filterView.element.reset();
+      this.#changeFilterType(FilterType.EVERYTHING);
+    }
+
+    if (this.#currentSortType !== SortType.SORT_DAY) {
+      this.#replaceSortComponent();
+      this.#handleSortTypeChange(SortType.SORT_DAY);
+    }
+    render(this.#pointFormAdd, this.#pointListComponent.element, 'afterbegin');
+    document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
     this.#editButton.disabled = true;
+  };
+
+  #pointFormAddCloseHandler = () => {
+    this.#closeFormAddPoint();
+  };
+
+  #escKeyDownFormAddHandler = (evt) => {
+    if (evt.key === 'Escape') {
+      evt.preventDefault();
+      this.#closeFormAddPoint();
+    }
+  };
+
+  #closeFormAddPoint = () => {
+    this.#pointFormAdd.reset();
+    this.#pointListComponent.element.firstChild.remove();
+    document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
+    this.#editButton.disabled = false;
+    this.#formAddMode = MODE_FORM_ADD.DEFAULT;
+  };
+
+  #resetFormAddPoint = () => {
+    if (this.#formAddMode !== MODE_FORM_ADD.DEFAULT) {
+      this.#closeFormAddPoint();
+    }
   };
 }
 
