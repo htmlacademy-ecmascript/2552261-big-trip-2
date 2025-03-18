@@ -3,6 +3,7 @@ import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import {getTypeImage} from '../utils/point';
 import flatpickr from 'flatpickr';
 import {DateTime} from 'luxon';
+import {setupUploadFormValidation} from '../validation';
 
 function createEventTypeItem(types) {
   return types.map((type) => `<div class="event__type-item">
@@ -132,6 +133,8 @@ export default class PointFormAdd extends AbstractStatefulView {
   #handleDeleteClick;
   #handleEscKeyDown;
   #datepicker = null;
+  #submitButton;
+  #pristine;
 
   constructor({destination, offers, types, destinations, onFormSubmit, onCloseClick, onEscKeyDawn}) {
     super();
@@ -143,6 +146,8 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#handleFormClose = onCloseClick;
     this.#handleEscKeyDown = onEscKeyDawn;
     this.#offers = offers;
+    this.#submitButton = this.element.querySelector('.event__save-btn');
+    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'));
     this._restoreHandlers();
   }
 
@@ -165,7 +170,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.element.querySelector('.event__input--price').addEventListener('input', this.#pointPriceChangeHandler);
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
-    this.element.querySelector('.event__input--destination').addEventListener('change', this.#pointDestinationChangeHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('input', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
 
@@ -211,15 +216,35 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   #pointDestinationChangeHandler = (evt) => {
     evt.preventDefault();
-    const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
-    this._setState({destination: newDestination});
-    this.updateElement({destination: newDestination.id});
-    console.log(this._state); //TODO delete
+    const isValid = this.#pristine.validate();
+    if (isValid) {
+      const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
+      this._setState({destination: newDestination});
+      this.updateElement({destination: newDestination.id});
+      this.#unblockBlockSubmitButton();
+      this.#pristine.reset();
+    } else {
+      this.#blockSubmitButton();
+    }
   };
 
+  #blockSubmitButton() {
+    this.#submitButton.disabled = true;
+  }
+
+  #unblockBlockSubmitButton() {
+    this.#submitButton.disabled = false;
+  }
+
   #pointPriceChangeHandler = (evt) => {
-    this._setState({basePrice: evt.target.value});
-    console.log(this._state); //TODO delete
+    const isValid = this.#pristine.validate();
+    if (isValid) {
+      this._setState({basePrice: evt.target.value});
+      this.#unblockBlockSubmitButton();
+      this.#pristine.reset();
+    } else {
+      this.#blockSubmitButton();
+    }
   };
 
   #pointOffersListChangeHandler = (evt) => {
