@@ -19,8 +19,6 @@ function createEventHeaderTemplate({point, type, types, destination, destination
 
   const typeImage = type.image;
   const typeName = type.type;
-  const dateFrom = formatDate(point.dateFrom);
-  const dateTo = formatDate(point.dateTo);
   return `<header class="event__header">
                   <div class="event__type-wrapper">
                     <label class="event__type  event__type-btn" for="event-type-toggle-1">
@@ -49,10 +47,10 @@ ${createEventTypeItem(types, point)}
 
                   <div class="event__field-group  event__field-group--time">
                     <label class="visually-hidden" for="event-start-time-1">From</label>
-                    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFrom}">
+                    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" >
                     &mdash;
                     <label class="visually-hidden" for="event-end-time-1">To</label>
-                    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateTo}">
+                    <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time">
                   </div>
 
                   <div class="event__field-group  event__field-group--price">
@@ -164,7 +162,8 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#setDatepicker('event-end-time-1');
     // this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
     // this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
-    // this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#pointPriceChangeHandler);
+    this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
@@ -173,17 +172,10 @@ export default class PointFormAdd extends AbstractStatefulView {
   }
 
   #setDatepicker(element) {
-    let defaultDate = new Date();
-    if (element === 'event-start-time-1') {
-      defaultDate = this._state.dateFrom;
-    } else {
-      defaultDate = this._state.dateTo;
-    }
     this.#datepicker = flatpickr(this.element.querySelector(`#${element}`),
       {
         enableTime: true,
         dateFormat: 'd/m/y H:i',
-        defaultDate: defaultDate,
         onChange: this.#dueDateChangeHandler,
       },
     );
@@ -198,7 +190,8 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit();
+    console.log('click');
+    // this.#handleFormSubmit();
     this.#resetForm();
   };
 
@@ -213,6 +206,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     const update = {offers: []};
     this._setState(update);
     this.updateElement({type: evt.target.value});
+    console.log(this._state); //TODO delete
   };
 
   #pointDestinationChangeHandler = (evt) => {
@@ -220,6 +214,12 @@ export default class PointFormAdd extends AbstractStatefulView {
     const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
     this._setState({destination: newDestination});
     this.updateElement({destination: newDestination.id});
+    console.log(this._state); //TODO delete
+  };
+
+  #pointPriceChangeHandler = (evt) => {
+    this._setState({basePrice: evt.target.value});
+    console.log(this._state); //TODO delete
   };
 
   #pointOffersListChangeHandler = (evt) => {
@@ -256,6 +256,7 @@ export default class PointFormAdd extends AbstractStatefulView {
         this._setState({dateTo: luxonDate.toISO()});
         break;
     }
+    console.log(this._state); //TODO delete
   };
 
   #resetForm() {
