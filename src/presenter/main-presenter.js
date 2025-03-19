@@ -5,7 +5,7 @@ import TripInfoView from '../view/trip-info-view';
 import FilterView from '../view/filter-view';
 import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
-import {remove, render, replace} from '../framework/render';
+import {render, replace} from '../framework/render';
 import {RenderPosition} from '../framework/render';
 import {FilterType} from '../const';
 import {filter} from '../utils/filter';

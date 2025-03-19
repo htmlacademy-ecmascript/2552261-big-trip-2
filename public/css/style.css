@@ -419,6 +419,7 @@ main {
             box-shadow: 0 11px 20px rgba(0, 0, 0, 0.043); }
 
 .event__header {
+  position: relative;
   display: -ms-flexbox;
   display: flex;
   -ms-flex-align: center;
@@ -831,3 +832,17 @@ main {
     padding-right: 20px; }
   .event__photo:not(:last-child) {
     margin-right: 5px; }
+
+  .event--edit-error {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    bottom: 2px;
+    color: red;
+    text-transform: uppercase;
+    background-color: black;
+  }
+
+  .has-danger {
+    border-bottom: 2px solid red;
+  }

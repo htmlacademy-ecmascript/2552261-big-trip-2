@@ -1,4 +1,4 @@
-import {formatDate, formatString, changeFirstLetter} from '../utils/util';
+import {formatDateTimeZone, formatString, changeFirstLetter} from '../utils/util';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import {getTypeImage} from '../utils/point';
 import flatpickr from 'flatpickr';
@@ -20,8 +20,8 @@ function createEventHeaderTemplate({point, type, types, destination, destination
 
   const typeImage = type.image;
   const typeName = type.type;
-  const dateFrom = formatDate(point.dateFrom);
-  const dateTo = formatDate(point.dateTo);
+  const dateFrom = formatDateTimeZone(point.dateFrom);
+  const dateTo = formatDateTimeZone(point.dateTo);
 
   return `<header class="event__header">
                   <div class="event__type-wrapper">

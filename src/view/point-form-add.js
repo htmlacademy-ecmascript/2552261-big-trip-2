@@ -1,9 +1,11 @@
-import {formatDate, formatString, changeFirstLetter} from '../utils/util';
+import {formatDateTimeZone, formatString, changeFirstLetter} from '../utils/util';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import {getTypeImage} from '../utils/point';
 import flatpickr from 'flatpickr';
 import {DateTime} from 'luxon';
 import {setupUploadFormValidation} from '../validation';
+import {formatDate} from '../utils/util';
+import dayjs from 'dayjs';
 
 function createEventTypeItem(types) {
   return types.map((type) => `<div class="event__type-item">
@@ -20,6 +22,7 @@ function createEventHeaderTemplate({point, type, types, destination, destination
 
   const typeImage = type.image;
   const typeName = type.type;
+
   return `<header class="event__header">
                   <div class="event__type-wrapper">
                     <label class="event__type  event__type-btn" for="event-type-toggle-1">
@@ -48,7 +51,7 @@ ${createEventTypeItem(types, point)}
 
                   <div class="event__field-group  event__field-group--time">
                     <label class="visually-hidden" for="event-start-time-1">From</label>
-                    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" >
+                    <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time">
                     &mdash;
                     <label class="visually-hidden" for="event-end-time-1">To</label>
                     <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time">
@@ -88,9 +91,9 @@ function createEventPhotoTemplate(pictures = []) {
   return pictures.map(({src}) => `<img class="event__photo" src="${src}" alt="Event photo">`).join('');
 }
 
-function createOffersItemTemplate(offers) {
-  return offers.map(({title, price}) => `<div class="event__offer-selector">
-                        <input class="event__offer-checkbox  visually-hidden" id="event-${formatString(title)}" type="checkbox" name="event-${formatString(title)}">
+function createOffersItemTemplate(offers, point) {
+  return offers.map(({id, title, price}) => `<div class="event__offer-selector">
+                        <input class="event__offer-checkbox  visually-hidden" id="event-${formatString(title)}" type="checkbox" name="event-${formatString(title)}" ${point.offers.some((offer) => offer === id) ? 'checked' : ''}>
                         <label class="event__offer-label" for="event-${formatString(title)}">
                           <span class="event__offer-title">${title}</span>
                           &plus;&euro;&nbsp;
@@ -130,7 +133,6 @@ export default class PointFormAdd extends AbstractStatefulView {
   #destinations;
   #handleFormSubmit;
   #handleFormClose;
-  #handleDeleteClick;
   #handleEscKeyDown;
   #datepicker = null;
   #submitButton;
@@ -146,9 +148,8 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#handleFormClose = onCloseClick;
     this.#handleEscKeyDown = onEscKeyDawn;
     this.#offers = offers;
-
-    this._restoreHandlers();
     this.#initPristine();
+    this._restoreHandlers();
   }
 
   get template() {
@@ -169,20 +170,33 @@ export default class PointFormAdd extends AbstractStatefulView {
     // this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
     this.#submitButton = this.element.querySelector('.event__save-btn');
     this.element.querySelector('.event__input--price').addEventListener('input', this.#pointPriceChangeHandler);
-    this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
+    // this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
+    this.element.querySelector('.event--edit').addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('input', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
 
+    this.element.querySelector('.event__input--destination').addEventListener('focus', this.#valid);
   }
 
+  #valid = () => {
+    this.#pristine.validate(this.element.querySelector('.event__input--destination'));
+  };
+
   #setDatepicker(element) {
+    let defaultDate = null;
+    if (element === 'event-start-time-1') {
+      defaultDate = this?._state.dateFrom ? formatDate(this._state.dateFrom) : null;
+    } else {
+      defaultDate = this?._state.dateTo ? formatDate(this._state.dateTo) : null;
+    }
     this.#datepicker = flatpickr(this.element.querySelector(`#${element}`),
       {
         enableTime: true,
         minDate: 'today',
         dateFormat: 'd/m/y H:i',
+        defaultDate: defaultDate,
         onChange: this.#dueDateChangeHandler,
       },
     );
@@ -191,7 +205,7 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   reset() {
     {
-      this.updateElement({type: 'flight', destination: '', offers: []});
+      this.updateElement({type: 'flight', destination: '', offers: [], basePrice: 0, dateFrom: '', dateTo: ''});
     }
   }
 
@@ -201,8 +215,10 @@ export default class PointFormAdd extends AbstractStatefulView {
     console.log(isValid);
     if (isValid) {
       console.log('Form submitted');
+      console.log(this._state);
       this.#unblockSubmitButton();
-      this.#resetForm();
+      this.#handleFormClose();
+      // this.#resetForm();
     } else {
       this.#blockSubmitButton();
     }
@@ -211,7 +227,8 @@ export default class PointFormAdd extends AbstractStatefulView {
   #formClosetHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormClose();
-    this.#resetForm();
+    // this.#resetForm();
+
   };
 
   #pointTypeChangeHandler = (evt) => {
@@ -239,7 +256,7 @@ export default class PointFormAdd extends AbstractStatefulView {
   };
 
   #initPristine() {
-    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-start-time-1'), this.element.querySelector('#event-end-time-1'));
+    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-end-time-1'), this.element.querySelector('#event-start-time-1'));
   }
 
   #blockSubmitButton() {
@@ -255,7 +272,6 @@ export default class PointFormAdd extends AbstractStatefulView {
     if (isValid) {
       this._setState({basePrice: evt.target.value});
       this.#unblockSubmitButton();
-      this.#pristine.reset();
     } else {
       this.#blockSubmitButton();
       this._setState({basePrice: 0});
@@ -264,12 +280,12 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   #pointOffersListChangeHandler = (evt) => {
     evt.preventDefault();
-
     const chosenOffer = this.#getOffersByType(this._state.type).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0])).id;
-
     if (this._state.offers.indexOf(chosenOffer) === -1) {
+      console.log('yes');
       const update = {offers: [chosenOffer, ...this._state.offers]};
       this._setState(update);
+      console.log(this._state.offers);
     } else {
       const update = {offers: [...this._state.offers]};
       update.offers.splice(update.offers.indexOf(chosenOffer), 1);
@@ -289,8 +305,8 @@ export default class PointFormAdd extends AbstractStatefulView {
     const timezone = 'Europe/Moscow';
     const luxonDate = DateTime.fromJSDate(userDate).setZone(timezone);
 
-    const isValidStartDate = this.#pristine.validate(this.element.querySelector('#event-start-time-1'));
     const isValidEndDate = this.#pristine.validate(this.element.querySelector('#event-end-time-1'));
+    const isValidStartDate = this.#pristine.validate(this.element.querySelector('#event-start-time-1'));
 
     switch (event.input.name) {
       case 'event-start-time':
@@ -304,15 +320,15 @@ export default class PointFormAdd extends AbstractStatefulView {
           this.#unblockSubmitButton();
         } else {
           this._setState({dateTo: ''});
+          this.element.querySelector('#event-end-time-1').value = '';
           this.#blockSubmitButton();
         }
         break;
     }
-
-    console.log(this._state); //TODO delete
   };
 
   #resetForm() {
     this.element.querySelector('.event--edit').reset();
+    this.#pristine.reset();
   }
 }

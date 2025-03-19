@@ -6,7 +6,6 @@ import {Mode} from '../const';
 import {getTypeImage} from '../utils/point';
 import {UpdateType} from '../const';
 import {UserAction} from '../const';
-import MainPresenter from "./main-presenter";
 
 export default class PointPresenter {
 
