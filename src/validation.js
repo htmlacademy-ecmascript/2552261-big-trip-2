@@ -1,11 +1,14 @@
 import Pristine from './vendor/pristine';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
 
-const setupUploadFormValidation = (form, price, destination) => {
+const setupUploadFormValidation = (form, price, destination, startDateInput, endDateInput) => {
   const pristine = new Pristine(form, {
-    classTo: 'event__header',
-    errorTextParent: 'event__header',
+    classTo: 'event--edit',
+    errorTextParent: 'event--edit',
     errorClass: '--error',
-    errorTextClass: 'event__header'
+    errorTextClass: 'event--edit'
   });
 
   pristine.addValidator(price, (value) => {
@@ -14,9 +17,19 @@ const setupUploadFormValidation = (form, price, destination) => {
   });
 
   pristine.addValidator(destination, (value) => {
-      console.log(destination.value);
     const pattern = /^(Paris|Chamonix|Venice|Nagasaki|Saint Petersburg|Rotterdam|Hiroshima|Madrid|Vien|Barcelona)$/;
     return pattern.test(value);
+  });
+
+  pristine.addValidator(startDateInput, (value) => {
+    const startDate = dayjs(value, 'DD/MM/YY HH:mm');
+    return startDate;
+  });
+
+  pristine.addValidator(endDateInput, (value) => {
+    const startDate = dayjs(startDateInput.value, 'DD/MM/YY HH:mm');
+    const endDate = dayjs(value, 'DD/MM/YY HH:mm');
+    return startDate.isBefore(endDate);
   });
 
   return pristine;

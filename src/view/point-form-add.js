@@ -62,7 +62,7 @@ ${createEventTypeItem(types, point)}
                     <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${point?.basePrice ? point.basePrice : 0}">
                   </div>
 
-                  <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+                  <button class="event__save-btn  btn  btn--blue" type="submit" disabled>Save</button>
                   <button class="event__reset-btn" type="reset">Cancel</button>
                 </header>`;
 }
@@ -138,7 +138,7 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   constructor({destination, offers, types, destinations, onFormSubmit, onCloseClick, onEscKeyDawn}) {
     super();
-    this._setState({type: 'flight', offers: []});
+    this._setState({type: 'flight', offers: [], basePrice: 0});
     this.#destination = destination;
     this.#types = types;
     this.#destinations = destinations;
@@ -146,9 +146,9 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#handleFormClose = onCloseClick;
     this.#handleEscKeyDown = onEscKeyDawn;
     this.#offers = offers;
-    this.#submitButton = this.element.querySelector('.event__save-btn');
-    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'));
+
     this._restoreHandlers();
+    this.#initPristine();
   }
 
   get template() {
@@ -167,6 +167,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#setDatepicker('event-end-time-1');
     // this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
     // this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
+    this.#submitButton = this.element.querySelector('.event__save-btn');
     this.element.querySelector('.event__input--price').addEventListener('input', this.#pointPriceChangeHandler);
     this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
@@ -180,6 +181,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#datepicker = flatpickr(this.element.querySelector(`#${element}`),
       {
         enableTime: true,
+        minDate: 'today',
         dateFormat: 'd/m/y H:i',
         onChange: this.#dueDateChangeHandler,
       },
@@ -195,9 +197,15 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    console.log('click');
-    // this.#handleFormSubmit();
-    this.#resetForm();
+    const isValid = this.#pristine.validate();
+    console.log(isValid);
+    if (isValid) {
+      console.log('Form submitted');
+      this.#unblockSubmitButton();
+      this.#resetForm();
+    } else {
+      this.#blockSubmitButton();
+    }
   };
 
   #formClosetHandler = (evt) => {
@@ -216,34 +224,41 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   #pointDestinationChangeHandler = (evt) => {
     evt.preventDefault();
-    const isValid = this.#pristine.validate();
-    if (isValid) {
+    const isValid = this.#pristine.validate(evt.target);
+    if (isValid || evt.target.value === '') {
       const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
       this._setState({destination: newDestination});
-      this.updateElement({destination: newDestination.id});
-      this.#unblockBlockSubmitButton();
-      this.#pristine.reset();
+      this.updateElement({destination: newDestination?.id ? newDestination.id : ''});
+      this.#unblockSubmitButton();
+      this.#initPristine();
     } else {
-      this.#blockSubmitButton();
+      this._setState({destination: {}}); //TODO DRY (дублирующий код)
+      this.updateElement({destination: ''});
+      this.#initPristine();
     }
   };
+
+  #initPristine() {
+    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-start-time-1'), this.element.querySelector('#event-end-time-1'));
+  }
 
   #blockSubmitButton() {
     this.#submitButton.disabled = true;
   }
 
-  #unblockBlockSubmitButton() {
+  #unblockSubmitButton() {
     this.#submitButton.disabled = false;
   }
 
   #pointPriceChangeHandler = (evt) => {
-    const isValid = this.#pristine.validate();
+    const isValid = this.#pristine.validate(evt.target);
     if (isValid) {
       this._setState({basePrice: evt.target.value});
-      this.#unblockBlockSubmitButton();
+      this.#unblockSubmitButton();
       this.#pristine.reset();
     } else {
       this.#blockSubmitButton();
+      this._setState({basePrice: 0});
     }
   };
 
@@ -273,14 +288,27 @@ export default class PointFormAdd extends AbstractStatefulView {
   #dueDateChangeHandler = ([userDate], instance, event) => {
     const timezone = 'Europe/Moscow';
     const luxonDate = DateTime.fromJSDate(userDate).setZone(timezone);
+
+    const isValidStartDate = this.#pristine.validate(this.element.querySelector('#event-start-time-1'));
+    const isValidEndDate = this.#pristine.validate(this.element.querySelector('#event-end-time-1'));
+
     switch (event.input.name) {
       case 'event-start-time':
-        this._setState({dateFrom: luxonDate.toISO()});
+        if (isValidStartDate) {
+          this._setState({dateFrom: luxonDate.toISO()});
+        }
         break;
       case 'event-end-time':
-        this._setState({dateTo: luxonDate.toISO()});
+        if (isValidEndDate) {
+          this._setState({dateTo: luxonDate.toISO()});
+          this.#unblockSubmitButton();
+        } else {
+          this._setState({dateTo: ''});
+          this.#blockSubmitButton();
+        }
         break;
     }
+
     console.log(this._state); //TODO delete
   };
 
