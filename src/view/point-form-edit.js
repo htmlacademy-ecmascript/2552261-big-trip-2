@@ -1,4 +1,4 @@
-import {formatDateTimeZone, formatString, changeFirstLetter, formatDate} from '../utils/util';
+import {formatDateTimeZone, formatString, changeFirstLetter} from '../utils/util';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import {getTypeImage} from '../utils/point';
 import flatpickr from 'flatpickr';
@@ -6,6 +6,7 @@ import 'flatpickr/dist/flatpickr.min.css';
 import {DateTime} from 'luxon';
 import {setupUploadFormValidation} from '../validation';
 import * as formUtil from '../utils/form';
+import {change} from '../utils/form';
 
 function createEventTypeItem(types, point) {
   return types.map((type) => `<div class="event__type-item">
@@ -221,7 +222,6 @@ export default class PointFormEdit extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     const isValid = this.#pristine.validate();
-    console.log(isValid);
     if (isValid) {
       this.#handleFormSubmit(this._state);
       this.#resetForm();
@@ -244,20 +244,27 @@ export default class PointFormEdit extends AbstractStatefulView {
   };
 
   #pointDestinationChangeHandler = (evt) => {
-    evt.preventDefault();
+    change(evt, this.#pristine, this.#destinations, this._setState.bind(this), this.updateElement.bind(this), this.#submitButton);
     const isValid = this.#pristine.validate(evt.target);
-    if (isValid || evt.target.value === '') {
-      const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
-      this._setState({destination: newDestination});
-      this.updateElement({destination: newDestination?.id ? newDestination.id : ''});
-      formUtil.unblockSubmitButton(this.#submitButton);
-      this.#initPristine();
-    } else {
-      this._setState({destination: {}}); //TODO DRY (дублирующий код)
-      this.updateElement({destination: ''});
-      this.#initPristine();
+    if (!isValid) {
+      formUtil.blockSubmitButton(this.#submitButton);
     }
   };
+  // #pointDestinationChangeHandler = (evt) => {
+  //   evt.preventDefault();
+  //   const isValid = this.#pristine.validate(evt.target);
+  //   if (isValid || evt.target.value === '') {
+  //     const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
+  //     this._setState({destination: newDestination});
+  //     this.updateElement({destination: newDestination?.id ? newDestination.id : ''});
+  //     formUtil.unblockSubmitButton(this.#submitButton);
+  //     this.#initPristine();
+  //   } else {
+  //     this._setState({destination: {}}); //TODO DRY (дублирующий код)
+  //     this.updateElement({destination: ''});
+  //     this.#initPristine();
+  //   }
+  // };
 
   #pointPriceChangeHandler = (evt) => {
     const isValid = this.#pristine.validate(evt.target);
