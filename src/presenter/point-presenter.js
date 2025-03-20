@@ -28,7 +28,17 @@ export default class PointPresenter {
   static #formAddMode = MODE_FORM_ADD.DEFAULT;
   static #handlePointAddClick;
 
-  constructor({resetFormAddPoint, pointListContainer, onFavoritesChange, onModeChange, pointOptionsModel, destinationModel, types, destinations, onAddClick}) {
+  constructor({
+    resetFormAddPoint,
+    pointListContainer,
+    onFavoritesChange,
+    onModeChange,
+    pointOptionsModel,
+    destinationModel,
+    types,
+    destinations,
+    onAddClick
+  }) {
     this.#resetFormAddPoint = resetFormAddPoint;
     this.#pointListContainer = pointListContainer;
     this.#handleDataChange = onFavoritesChange;
@@ -45,6 +55,7 @@ export default class PointPresenter {
         types: this.#types,
         destinations: this.#destinations,
         onCloseClick: this.#pointFormAddCloseHandler,
+        onAddNewPointClick: this.#handleAddNewPointClick
       });
       PointPresenter.#handlePointAddClick = onAddClick;
     }
@@ -125,7 +136,7 @@ export default class PointPresenter {
   }
 
   #handleEditClick = () => {
-    this.#resetFormAddPoint();
+    // this.#resetFormAddPoint();
     this.#replacePointToForm();
   };
 
@@ -147,9 +158,17 @@ export default class PointPresenter {
     );
   };
 
-  #handleDeleteClick = (point) => {
+  #handleDeleteClick = () => {
     this.#handleDataChange(
       UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      this.#point,
+    );
+  };
+
+  #handleAddNewPointClick = (point) => {
+    this.#handleDataChange(
+      UserAction.ADD_POINT,
       UpdateType.MINOR,
       point,
     );

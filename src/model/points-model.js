@@ -18,7 +18,7 @@ export default class PointsModel extends Observable {
     if (index === -1) {
       throw new Error('Point not found');
     }
-    this.#points.splice(0, 1);
+    this.#points = this.#points.filter((point) => point.id !== deletePoint.id);
     this._notify(updateType);
   }
 
