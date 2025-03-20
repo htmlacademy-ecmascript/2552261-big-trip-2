@@ -1,9 +1,11 @@
-import {formatDateTimeZone, formatString, changeFirstLetter} from '../utils/util';
+import {formatDateTimeZone, formatString, changeFirstLetter, formatDate} from '../utils/util';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import {getTypeImage} from '../utils/point';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import {DateTime} from 'luxon';
+import {setupUploadFormValidation} from '../validation';
+import * as formUtil from '../utils/form';
 
 function createEventTypeItem(types, point) {
   return types.map((type) => `<div class="event__type-item">
@@ -43,7 +45,7 @@ ${createEventTypeItem(types, point)}
                     <label class="event__label  event__type-output" for="event-destination-1">
                       ${typeName}
                     </label>
-                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
+                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination?.name ? destination.name : ''}" list="destination-list-1">
                     <datalist id="destination-list-1">
                     ${createEventDestinationItem(destinations)}
                     </datalist>
@@ -74,12 +76,11 @@ ${createEventTypeItem(types, point)}
 }
 
 function createEventDestinationTemplate(destination) {
-  const {description, pictures} = destination;
-  const currentPictures = pictures;
+  const {description, pictures} = destination ? destination : {};
+  const currentPictures = pictures ? pictures : [];
+  const currentDescription = description ? description : '';
 
-  const currentDescription = description || 'Geneva is a city in Switzerland that lies at the southern tip of expansive Lac Léman (Lake Geneva). Surrounded by the Alps and Jura mountains, the city has views of dramatic Mont Blanc.';
-
-  return `<section class="event__section  event__section--destination">
+  return `<section class="event__section  event__section--destination" ${!destination || (pictures.length === 0 && description === '') ? 'hidden' : ''}>
                         <h3 class="event__section-title  event__section-title--destination">Destination</h3>
                         <p class="event__destination-description">${currentDescription}</p>
 
@@ -91,7 +92,7 @@ function createEventDestinationTemplate(destination) {
                      </section>`;
 }
 
-function createEventPhotoTemplate(pictures) {
+function createEventPhotoTemplate(pictures = []) {
   return pictures.map(({src}) => `<img class="event__photo" src="${src}" alt="Event photo">`).join('');
 }
 
@@ -138,6 +139,8 @@ export default class PointFormEdit extends AbstractStatefulView {
   #handleFormSubmit;
   #handleFormClose;
   #handleDeleteClick;
+  #pristine;
+  #submitButton;
   #datepicker = null;
 
   constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick, onDeleteClick}) {
@@ -165,27 +168,35 @@ export default class PointFormEdit extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
+    this.#initPristine();
+    this.#submitButton = this.element.querySelector('.event__save-btn');
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
-    this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
+    this.element.querySelector('.event--edit').addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
-    this.element.querySelector('.event__input--destination').addEventListener('change', this.#pointDestinationChangeHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('input', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#pointPriceChangeHandler);
     this.#setDatepicker('event-start-time-1');
     this.#setDatepicker('event-end-time-1');
+  }
+
+  #initPristine() {
+    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-end-time-1'), this.element.querySelector('#event-start-time-1'));
   }
 
   #setDatepicker(element) {
     let defaultDate = null;
     if (element === 'event-start-time-1') {
-      defaultDate = this._state.dateFrom;
+      defaultDate = this?._state.dateFrom ? formatDateTimeZone(this._state.dateFrom) : null;
     } else {
-      defaultDate = this._state.dateTo;
+      defaultDate = this?._state.dateTo ? formatDateTimeZone(this._state.dateTo) : null;
     }
     this.#datepicker = flatpickr(this.element.querySelector(`#${element}`),
       {
         enableTime: true,
+        minDate: 'today',
         dateFormat: 'd/m/y H:i',
         defaultDate: defaultDate,
         onChange: this.#dueDateChangeHandler,
@@ -209,8 +220,14 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit();
-    this.#resetForm();
+    const isValid = this.#pristine.validate();
+    console.log(isValid);
+    if (isValid) {
+      this.#handleFormSubmit(this._state);
+      this.#resetForm();
+    } else {
+      formUtil.blockSubmitButton(this.#submitButton);
+    }
   };
 
   #formClosetHandler = (evt) => {
@@ -228,8 +245,29 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #pointDestinationChangeHandler = (evt) => {
     evt.preventDefault();
-    const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
-    this.updateElement({destination: newDestination.id});
+    const isValid = this.#pristine.validate(evt.target);
+    if (isValid || evt.target.value === '') {
+      const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
+      this._setState({destination: newDestination});
+      this.updateElement({destination: newDestination?.id ? newDestination.id : ''});
+      formUtil.unblockSubmitButton(this.#submitButton);
+      this.#initPristine();
+    } else {
+      this._setState({destination: {}}); //TODO DRY (дублирующий код)
+      this.updateElement({destination: ''});
+      this.#initPristine();
+    }
+  };
+
+  #pointPriceChangeHandler = (evt) => {
+    const isValid = this.#pristine.validate(evt.target);
+    if (isValid) {
+      this._setState({basePrice: evt.target.value});
+      formUtil.unblockSubmitButton(this.#submitButton);
+    } else {
+      formUtil.blockSubmitButton(this.#submitButton);
+      this._setState({basePrice: 0});
+    }
   };
 
   #pointOffersListChangeHandler = (evt) => {

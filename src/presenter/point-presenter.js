@@ -18,7 +18,6 @@ export default class PointPresenter {
   #mode = Mode.DEFAULT;
   #handleDataChange;
   #handleModeChange;
-  #resetFormAddPoint;
   #pointOptionsModel;
   #destinationModel;
   #types;
@@ -29,7 +28,6 @@ export default class PointPresenter {
   static #handlePointAddClick;
 
   constructor({
-    resetFormAddPoint,
     pointListContainer,
     onFavoritesChange,
     onModeChange,
@@ -39,7 +37,6 @@ export default class PointPresenter {
     destinations,
     onAddClick
   }) {
-    this.#resetFormAddPoint = resetFormAddPoint;
     this.#pointListContainer = pointListContainer;
     this.#handleDataChange = onFavoritesChange;
     this.#handleModeChange = onModeChange;
@@ -55,7 +52,7 @@ export default class PointPresenter {
         types: this.#types,
         destinations: this.#destinations,
         onCloseClick: this.#pointFormAddCloseHandler,
-        onAddNewPointClick: this.#handleAddNewPointClick
+        onAddNewPointClick: this.#handleAddSubmit
       });
       PointPresenter.#handlePointAddClick = onAddClick;
     }
@@ -87,7 +84,7 @@ export default class PointPresenter {
       types: this.#types,
       destinations: this.#destinations,
       onCloseClick: this.#handleCloseClick,
-      onFormSubmit: this.#handleFormSubmit,
+      onFormSubmit: this.#handleEditSubmit,
       onDeleteClick: this.#handleDeleteClick
     });
 
@@ -116,6 +113,12 @@ export default class PointPresenter {
     this.#mode = Mode.DEFAULT;
   }
 
+  #resetFormAddPoint = () => {
+    if (PointPresenter.#formAddMode !== MODE_FORM_ADD.DEFAULT) {
+      this.#closeFormAddPoint();
+    }
+  };
+
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
@@ -136,7 +139,7 @@ export default class PointPresenter {
   }
 
   #handleEditClick = () => {
-    // this.#resetFormAddPoint();
+    this.#resetFormAddPoint();
     this.#replacePointToForm();
   };
 
@@ -145,8 +148,12 @@ export default class PointPresenter {
     this.#replaceFormToPoint();
   };
 
-  #handleFormSubmit = () => {
-    this.#replaceFormToPoint();
+  #handleEditSubmit = (point) => {
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.MINOR,
+      point,
+    );
   };
 
   #handleFavoritesClick = () => {
@@ -166,7 +173,7 @@ export default class PointPresenter {
     );
   };
 
-  #handleAddNewPointClick = (point) => {
+  #handleAddSubmit = (point) => {
     this.#handleDataChange(
       UserAction.ADD_POINT,
       UpdateType.MINOR,

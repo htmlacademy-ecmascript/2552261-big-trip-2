@@ -1,11 +1,11 @@
-import {formatDateTimeZone, formatString, changeFirstLetter} from '../utils/util';
+import {formatString, changeFirstLetter} from '../utils/util';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view';
 import {getTypeImage} from '../utils/point';
 import flatpickr from 'flatpickr';
 import {DateTime} from 'luxon';
 import {setupUploadFormValidation} from '../validation';
 import {formatDate} from '../utils/util';
-import dayjs from 'dayjs';
+import * as formUtil from '../utils/form';
 
 function createEventTypeItem(types) {
   return types.map((type) => `<div class="event__type-item">
@@ -168,11 +168,8 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#initPristine();
     this.#setDatepicker('event-start-time-1');
     this.#setDatepicker('event-end-time-1');
-    // this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
-    // this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
     this.#submitButton = this.element.querySelector('.event__save-btn');
     this.element.querySelector('.event__input--price').addEventListener('input', this.#pointPriceChangeHandler);
-    // this.element.querySelector('.event__save-btn').addEventListener('click', this.#formSubmitHandler);
     this.element.querySelector('.event--edit').addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('input', this.#pointDestinationChangeHandler);
@@ -211,19 +208,17 @@ export default class PointFormAdd extends AbstractStatefulView {
     if (isValid) {
       console.log(this._state);
       this.#handleAddNewPointClick(this._state);
-      this.#unblockSubmitButton();
+      formUtil.unblockSubmitButton(this.#submitButton);
       this.#handleFormClose();
 
     } else {
-      this.#blockSubmitButton();
+      formUtil.blockSubmitButton(this.#submitButton);
     }
   };
 
   #formClosetHandler = (evt) => {
     evt.preventDefault();
     this.#handleFormClose();
-    // this.#resetForm();
-
   };
 
   #pointTypeChangeHandler = (evt) => {
@@ -237,11 +232,12 @@ export default class PointFormAdd extends AbstractStatefulView {
   #pointDestinationChangeHandler = (evt) => {
     evt.preventDefault();
     const isValid = this.#pristine.validate(evt.target);
+    console.log(isValid);
     if (isValid || evt.target.value === '') {
       const newDestination = this.#destinations.find((destination) => destination.name === evt.target.value);
       this._setState({destination: newDestination});
       this.updateElement({destination: newDestination?.id ? newDestination.id : ''});
-      this.#unblockSubmitButton();
+      formUtil.unblockSubmitButton(this.#submitButton);
       this.#initPristine();
     } else {
       this._setState({destination: {}}); //TODO DRY (дублирующий код)
@@ -254,21 +250,13 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-end-time-1'), this.element.querySelector('#event-start-time-1'));
   }
 
-  #blockSubmitButton() {
-    this.#submitButton.disabled = true;
-  }
-
-  #unblockSubmitButton() {
-    this.#submitButton.disabled = false;
-  }
-
   #pointPriceChangeHandler = (evt) => {
     const isValid = this.#pristine.validate(evt.target);
     if (isValid) {
       this._setState({basePrice: evt.target.value});
-      this.#unblockSubmitButton();
+      formUtil.unblockSubmitButton(this.#submitButton);
     } else {
-      this.#blockSubmitButton();
+      formUtil.blockSubmitButton(this.#submitButton);
       this._setState({basePrice: 0});
     }
   };
@@ -277,10 +265,8 @@ export default class PointFormAdd extends AbstractStatefulView {
     evt.preventDefault();
     const chosenOffer = this.#getOffersByType(this._state.type).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0])).id;
     if (this._state.offers.indexOf(chosenOffer) === -1) {
-      console.log('yes');
       const update = {offers: [chosenOffer, ...this._state.offers]};
       this._setState(update);
-      console.log(this._state.offers);
     } else {
       const update = {offers: [...this._state.offers]};
       update.offers.splice(update.offers.indexOf(chosenOffer), 1);
@@ -312,18 +298,13 @@ export default class PointFormAdd extends AbstractStatefulView {
       case 'event-end-time':
         if (isValidEndDate) {
           this._setState({dateTo: luxonDate.toISO()});
-          this.#unblockSubmitButton();
+          formUtil.unblockSubmitButton(this.#submitButton);
         } else {
           this._setState({dateTo: ''});
           this.element.querySelector('#event-end-time-1').value = '';
-          this.#blockSubmitButton();
+          formUtil.blockSubmitButton(this.#submitButton);
         }
         break;
     }
   };
-
-  // #resetForm() {
-  //   this.element.querySelector('.event--edit').reset();
-  //   this.#pristine.reset();
-  // }
 }

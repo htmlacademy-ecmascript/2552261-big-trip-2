@@ -29,5 +29,6 @@ export default class PointsModel extends Observable {
     }
     this.#points.splice(index, 1, newPoint);
     this._notify(updateType, newPoint);
+    console.log(this.#points);
   }
 }
