@@ -85,37 +85,36 @@ export default class MainPresenter {
     return this.#currentBoardPoints;
   }
 
-  #renderPoint({point, types, destinations}) {
+  #renderPoint({point}) {
     const pointPresenter = new PointPresenter({
       resetFormAddPoint: this.#resetFormAddPoint,
       pointListContainer: this.#pointListComponent.element,
-      onFavoritesChange: this.#handleViewAction, onModeChange: this.#handleModeChange
-    });
-    pointPresenter.init({
-      point,
-      types,
-      destinations,
+      onFavoritesChange: this.#handleViewAction,
+      onModeChange: this.#handleModeChange,
+      pointOptionsModel: this.#pointOptionsModel,
       destinationModel: this.#destinationModel,
-      pointOptionsModel: this.#pointOptionsModel
+      types: this.#types,
+      destinations: this.#destinations
     });
+    pointPresenter.init({point});
     this.#pointPresenters.set(point.id, pointPresenter);
   }
 
-  #renderPoints({filterType = FilterType.EVERYTHING, points, types, destinations, mainContainer}) {
+  #renderPoints({filterType = FilterType.EVERYTHING, points, mainContainer}) {
     if (points.length > 0) {
-      points.forEach((point) => this.#renderPoint({point, types, destinations}));
+      points.forEach((point) => this.#renderPoint({point}));
       render(this.#pointListComponent, mainContainer);
     } else {
       render(new EmptyListView(filterType), this.#container.querySelector('.trip-events'));
     }
   }
 
-  #renderPointBoard({types, destinations, mainContainer, headerContainer}) {
+  #renderPointBoard({mainContainer, headerContainer}) {
     render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
     this.#filterView = new FilterView(this.#handleFilterChange);
     render(this.#filterView, headerContainer.querySelector('.trip-controls__filters'));
     this.#renderSort();
-    this.#renderPoints({points: this.points, types, destinations, mainContainer});
+    this.#renderPoints({points: this.points, mainContainer});
   }
 
   #clearBoard() {

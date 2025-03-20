@@ -148,7 +148,6 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#handleFormClose = onCloseClick;
     this.#handleEscKeyDown = onEscKeyDawn;
     this.#offers = offers;
-    this.#initPristine();
     this._restoreHandlers();
   }
 
@@ -164,6 +163,7 @@ export default class PointFormAdd extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
+    this.#initPristine();
     this.#setDatepicker('event-start-time-1');
     this.#setDatepicker('event-end-time-1');
     // this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
@@ -176,13 +176,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.element.querySelector('.event__input--destination').addEventListener('input', this.#pointDestinationChangeHandler);
     this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#formClosetHandler);
-
-    this.element.querySelector('.event__input--destination').addEventListener('focus', this.#valid);
   }
-
-  #valid = () => {
-    this.#pristine.validate(this.element.querySelector('.event__input--destination'));
-  };
 
   #setDatepicker(element) {
     let defaultDate = null;
@@ -201,7 +195,6 @@ export default class PointFormAdd extends AbstractStatefulView {
       },
     );
   }
-
 
   reset() {
     {
@@ -327,8 +320,8 @@ export default class PointFormAdd extends AbstractStatefulView {
     }
   };
 
-  #resetForm() {
-    this.element.querySelector('.event--edit').reset();
-    this.#pristine.reset();
-  }
+  // #resetForm() {
+  //   this.element.querySelector('.event--edit').reset();
+  //   this.#pristine.reset();
+  // }
 }

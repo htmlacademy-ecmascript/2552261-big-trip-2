@@ -18,19 +18,27 @@ export default class PointPresenter {
   #handleDataChange;
   #handleModeChange;
   #resetFormAddPoint;
+  #pointOptionsModel;
+  #destinationModel;
+  #types;
+  #destinations;
 
-  constructor({resetFormAddPoint, pointListContainer, onFavoritesChange, onModeChange}) {
+  constructor({resetFormAddPoint, pointListContainer, onFavoritesChange, onModeChange, pointOptionsModel, destinationModel, types, destinations}) {
     this.#resetFormAddPoint = resetFormAddPoint;
     this.#pointListContainer = pointListContainer;
     this.#handleDataChange = onFavoritesChange;
     this.#handleModeChange = onModeChange;
+    this.#pointOptionsModel = pointOptionsModel;
+    this.#destinationModel = destinationModel;
+    this.#types = types;
+    this.#destinations = destinations;
   }
 
-  init({point, types, destinations, destinationModel, pointOptionsModel}) {
+  init({point}) {
     this.#point = point;
     const type = getTypeImage(this.#point);
-    const destination = destinationModel.getDestinationById(this.#point.destination);
-    const offers = pointOptionsModel.getOffersByType(this.#point.type);
+    const destination = this.#destinationModel.getDestinationById(this.#point.destination);
+    const offers = this.#pointOptionsModel.getOffersByType(this.#point.type);
 
     const prevPointView = this.#pointView;
     const prevPointEdit = this.#pointFormEdit;
@@ -48,9 +56,9 @@ export default class PointPresenter {
       point,
 
       destination,
-      offers: pointOptionsModel.getOptions(),
-      types,
-      destinations,
+      offers: this.#pointOptionsModel.getOptions(),
+      types: this.#types,
+      destinations: this.#destinations,
       onCloseClick: this.#handleCloseClick,
       onFormSubmit: this.#handleFormSubmit,
       onDeleteClick: this.#handleDeleteClick
