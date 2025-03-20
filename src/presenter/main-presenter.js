@@ -5,17 +5,10 @@ import TripInfoView from '../view/trip-info-view';
 import FilterView from '../view/filter-view';
 import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
-import {render, replace} from '../framework/render';
-import {RenderPosition} from '../framework/render';
-import {FilterType} from '../const';
+import {render, RenderPosition, replace} from '../framework/render';
+import {FilterType, MODE_FORM_ADD, SORT_TYPES, SortType, UpdateType, UserAction} from '../const';
 import {filter} from '../utils/filter';
-import {SORT_TYPES} from '../const';
-import {SortType} from '../const';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
-import {UserAction} from '../const';
-import {UpdateType} from '../const';
-import PointFormAdd from '../view/point-form-add';
-import {MODE_FORM_ADD} from '../const';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
@@ -23,7 +16,6 @@ export default class MainPresenter {
   #emptyList = new EmptyListView();
   #formAddMode = MODE_FORM_ADD.DEFAULT;
   #filterView;
-  #pointFormAdd;
   #container;
   #mainContainer;
   #headerContainer;
@@ -34,7 +26,6 @@ export default class MainPresenter {
   #currentFilterType = FilterType.EVERYTHING;
   #sortComponent;
   #currentBoardPoints = [];
-  #editButton;
   #types;
   #destinations;
 
@@ -45,8 +36,6 @@ export default class MainPresenter {
     this.#destinationModel = destinationModel;
     this.#mainContainer = this.#container.querySelector('.trip-events');
     this.#headerContainer = this.#container.querySelector('.trip-main');
-    this.#editButton = this.#headerContainer.querySelector('.trip-main__event-add-btn');
-    this.#editButton.addEventListener('click', this.#pointAddClickHandler);
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
 
@@ -55,12 +44,6 @@ export default class MainPresenter {
 
   init() {
     this.#currentBoardPoints = [...this.#pointModel.getPoints()];
-    this.#pointFormAdd = new PointFormAdd({
-      offers: this.#pointOptionsModel.getOptions(),
-      types: this.#types,
-      destinations: this.#destinations,
-      onCloseClick: this.#pointFormAddCloseHandler,
-    });
 
     this.#renderPointBoard({
       types: this.#types,
@@ -87,10 +70,10 @@ export default class MainPresenter {
 
   #renderPoint({point}) {
     const pointPresenter = new PointPresenter({
-      resetFormAddPoint: this.#resetFormAddPoint,
       pointListContainer: this.#pointListComponent.element,
       onFavoritesChange: this.#handleViewAction,
       onModeChange: this.#handleModeChange,
+      onAddClick: this.#HandlePointAddClick,
       pointOptionsModel: this.#pointOptionsModel,
       destinationModel: this.#destinationModel,
       types: this.#types,
@@ -253,9 +236,8 @@ export default class MainPresenter {
     }
   }
 
-  #pointAddClickHandler = () => {
+  #HandlePointAddClick = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
-    this.#formAddMode = MODE_FORM_ADD.OPEN;
     if (this.#currentFilterType !== FilterType.EVERYTHING) {
       this.#filterView.element.reset();
       this.#changeFilterType(FilterType.EVERYTHING);
@@ -264,34 +246,6 @@ export default class MainPresenter {
     if (this.#currentSortType !== SortType.SORT_DAY) {
       this.#replaceSortComponent();
       this.#handleSortTypeChange(SortType.SORT_DAY);
-    }
-    render(this.#pointFormAdd, this.#pointListComponent.element, 'afterbegin');
-    document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
-    this.#editButton.disabled = true;
-  };
-
-  #pointFormAddCloseHandler = () => {
-    this.#closeFormAddPoint();
-  };
-
-  #escKeyDownFormAddHandler = (evt) => {
-    if (evt.key === 'Escape') {
-      evt.preventDefault();
-      this.#closeFormAddPoint();
-    }
-  };
-
-  #closeFormAddPoint = () => {
-    this.#pointFormAdd.reset();
-    this.#pointListComponent.element.firstChild.remove();
-    document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
-    this.#editButton.disabled = false;
-    this.#formAddMode = MODE_FORM_ADD.DEFAULT;
-  };
-
-  #resetFormAddPoint = () => {
-    if (this.#formAddMode !== MODE_FORM_ADD.DEFAULT) {
-      this.#closeFormAddPoint();
     }
   };
 }

@@ -2,10 +2,11 @@ import PointFormEdit from '../view/point-form-edit';
 import PointView from '../view/point-view';
 import {render, replace} from '../framework/render';
 import {remove} from '../framework/render';
-import {Mode} from '../const';
+import {Mode, MODE_FORM_ADD} from '../const';
 import {getTypeImage} from '../utils/point';
 import {UpdateType} from '../const';
 import {UserAction} from '../const';
+import PointFormAdd from '../view/point-form-add';
 
 export default class PointPresenter {
 
@@ -22,8 +23,12 @@ export default class PointPresenter {
   #destinationModel;
   #types;
   #destinations;
+  static #editButton;
+  static #pointFormAdd;
+  static #formAddMode = MODE_FORM_ADD.DEFAULT;
+  static #handlePointAddClick;
 
-  constructor({resetFormAddPoint, pointListContainer, onFavoritesChange, onModeChange, pointOptionsModel, destinationModel, types, destinations}) {
+  constructor({resetFormAddPoint, pointListContainer, onFavoritesChange, onModeChange, pointOptionsModel, destinationModel, types, destinations, onAddClick}) {
     this.#resetFormAddPoint = resetFormAddPoint;
     this.#pointListContainer = pointListContainer;
     this.#handleDataChange = onFavoritesChange;
@@ -32,6 +37,17 @@ export default class PointPresenter {
     this.#destinationModel = destinationModel;
     this.#types = types;
     this.#destinations = destinations;
+    if (!PointPresenter.#editButton && !PointPresenter.#pointFormAdd) {
+      PointPresenter.#editButton = document.querySelector('.trip-main__event-add-btn');
+      PointPresenter.#editButton.addEventListener('click', this.#pointAddClickHandler/*this.#pointAddClickHandler*/);
+      PointPresenter.#pointFormAdd = new PointFormAdd({
+        offers: this.#pointOptionsModel.getOptions(),
+        types: this.#types,
+        destinations: this.#destinations,
+        onCloseClick: this.#pointFormAddCloseHandler,
+      });
+      PointPresenter.#handlePointAddClick = onAddClick;
+    }
   }
 
   init({point}) {
@@ -137,5 +153,32 @@ export default class PointPresenter {
       UpdateType.MINOR,
       point,
     );
+  };
+
+  #pointFormAddCloseHandler = () => {
+    this.#closeFormAddPoint();
+  };
+
+  #escKeyDownFormAddHandler = (evt) => {
+    if (evt.key === 'Escape') {
+      evt.preventDefault();
+      this.#closeFormAddPoint();
+    }
+  };
+
+  #closeFormAddPoint = () => {
+    PointPresenter.#pointFormAdd.reset();
+    this.#pointListContainer.firstChild.remove();
+    document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
+    PointPresenter.#editButton.disabled = false;
+    PointPresenter.#formAddMode = MODE_FORM_ADD.DEFAULT;
+  };
+
+  #pointAddClickHandler = () => {
+    PointPresenter.#handlePointAddClick();
+    PointPresenter.#formAddMode = MODE_FORM_ADD.OPEN;
+    render(PointPresenter.#pointFormAdd, this.#pointListContainer, 'afterbegin');
+    document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
+    PointPresenter.#editButton.disabled = true;
   };
 }
