@@ -20,14 +20,14 @@ const setupUploadFormValidation = (form, price, destination, endDateInput, start
   pristine.addValidator(destination, (value) => {
     const pattern = /^(Paris|Chamonix|Venice|Nagasaki|Saint Petersburg|Rotterdam|Hiroshima|Madrid|Vien|Barcelona)$/;
     return pattern.test(value);
-  }, 'Не выбрана точка маршрута.', 1, false);
+  }, 'Не выбрана точка маршрута', 1, false);
 
 
   pristine.addValidator(endDateInput, (value) => {
     const startDate = dayjs(startDateInput.value, 'DD/MM/YY HH:mm');
     const endDate = dayjs(value, 'DD/MM/YY HH:mm');
     return startDate.isBefore(endDate);
-  }, 'Дата завершения раньше начала или пустая.', 0,false);
+  }, 'Дата завершения раньше начала или пустая', 0,false);
 
   pristine.addValidator(startDateInput, (value) => {
     const startDate = dayjs(value, 'DD/MM/YY HH:mm');
@@ -35,7 +35,7 @@ const setupUploadFormValidation = (form, price, destination, endDateInput, start
       return true;
     }
     return false;
-  }, 'Дата начала события позже завершения или пустая.', 0,false);
+  }, 'Дата начала события позже завершения или пустая', 0,false);
 
   return pristine;
 };

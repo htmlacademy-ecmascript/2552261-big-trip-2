@@ -841,6 +841,7 @@ main {
     color: red;
     text-transform: uppercase;
     background-color: black;
+    border-radius: 5px;
   }
 
   .has-danger {

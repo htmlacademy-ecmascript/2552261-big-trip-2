@@ -6,11 +6,10 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 function formatDateTimeZone(date) {
-  return dayjs.tz(date,'Europe/Moscow').format('DD/MM/YY HH:mm');
-}
-
-function formatDate(date) {
-  return dayjs(date).format('DD/MM/YY HH:mm');
+  if(date === '') {
+    return '';
+  }
+  return dayjs.utc(date).tz('Europe/Moscow').format('DD/MM/YY HH:mm');
 }
 
 function getDate(date) {
@@ -25,7 +24,7 @@ function getShortDate(date) {
 
 function getShortTime(date) {
   if (date instanceof Date) {
-    return dayjs.utc(date).format('HH:mm');
+    return dayjs.utc(date).tz('Europe/Moscow').format('HH:mm');
   }
 }
 
@@ -55,4 +54,4 @@ function changeFirstLetter(string) {
   return string.replace(/^\w/, string.charAt(0).toUpperCase());
 }
 
-export {getDate, getTimeDifference, getShortTime, getShortDate, formatDateTimeZone, formatString, changeFirstLetter, formatDate};
+export {getDate, getTimeDifference, getShortTime, getShortDate, formatDateTimeZone, formatString, changeFirstLetter};

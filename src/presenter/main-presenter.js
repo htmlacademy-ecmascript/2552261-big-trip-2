@@ -188,8 +188,9 @@ export default class MainPresenter {
         break;
       case UpdateType.MINOR:
         this.#clearBoard();
-        this.#replaceSortComponent();
         this.#currentBoardPoints = this.#pointModel.getPoints();
+        this.#clearFilterMessage();
+        this.#replaceSortComponent();
         this.#currentSortType = SortType.SORT_DAY;
         this.#renderPoints({
           points: this.points,
