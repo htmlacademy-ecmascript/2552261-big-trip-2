@@ -29,7 +29,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     onAddNewPointClick
   }) {
     super();
-    this._setState({type: 'flight', offers: [], basePrice: 0});
+    this._setState({type: 'flight', offers: [], basePrice: 0, totalPrice: 0});
     this.#destination = destination;
     this.#types = types;
     this.#destinations = destinations;
@@ -79,7 +79,15 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   reset() {
     {
-      this.updateElement({type: 'flight', destination: '', offers: [], basePrice: 0, dateFrom: '', dateTo: ''});
+      this.updateElement({
+        type: 'flight',
+        destination: '',
+        offers: [],
+        basePrice: 0,
+        totalPrice: 0,
+        dateFrom: '',
+        dateTo: ''
+      });
     }
   }
 
@@ -89,6 +97,7 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
+    this._setState({basePrice: this._state.totalPrice});
     const isValid = this.#pristine.validate();
     if (isValid) {
       this.#handleAddNewPointClick(this._state);
@@ -113,7 +122,16 @@ export default class PointFormAdd extends AbstractStatefulView {
   };
 
   #pointDestinationChangeHandler = (evt) => {
-    changeDestination(evt, this.#pristine, this.#destinations, this._setState.bind(this), this.updateElement.bind(this), this.#submitButton);
+    this._setState({totalPrice: this._state.basePrice});
+    changeDestination({
+      evt,
+      state: this._state,
+      pristine: this.#pristine,
+      destinations: this.#destinations,
+      setState: this._setState.bind(this),
+      updateElement: this.updateElement.bind(this),
+      submitButton: this.#submitButton
+    });
   };
 
   #pointPriceChangeHandler = (evt) => {

@@ -74,7 +74,7 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   static parsePointToState(point) {
     return {
-      ...point,
+      totalPrice: point.basePrice, ...point,
     };
   }
 
@@ -89,6 +89,7 @@ export default class PointFormEdit extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     const isValid = this.#pristine.validate();
+    this._setState({basePrice: this._state.totalPrice});
     if (isValid) {
       this.#handleFormSubmit(this._state);
       this.#resetForm();
@@ -111,7 +112,15 @@ export default class PointFormEdit extends AbstractStatefulView {
   };
 
   #pointDestinationChangeHandler = (evt) => {
-    changeDestination(evt, this.#pristine, this.#destinations, this._setState.bind(this), this.updateElement.bind(this), this.#submitButton);
+    changeDestination({
+      evt,
+      state: this._state,
+      pristine: this.#pristine,
+      destinations: this.#destinations,
+      setState: this._setState.bind(this),
+      updateElement: this.updateElement.bind(this),
+      submitButton: this.#submitButton
+    });
     const isValid = this.#pristine.validate(evt.target);
     if (!isValid) {
       formUtil.blockSubmitButton(this.#submitButton);
@@ -119,7 +128,12 @@ export default class PointFormEdit extends AbstractStatefulView {
   };
 
   #pointPriceChangeHandler = (evt) => {
-    formUtil.changePrice({evt, pristine: this.#pristine, submitButton: this.#submitButton, setState: this._setState.bind(this)});
+    formUtil.changePrice({
+      evt,
+      pristine: this.#pristine,
+      submitButton: this.#submitButton,
+      setState: this._setState.bind(this)
+    });
   };
 
   #pointOffersListChangeHandler = (evt) => {

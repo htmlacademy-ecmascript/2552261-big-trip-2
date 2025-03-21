@@ -133,7 +133,7 @@ function unblockSubmitButton(button) {
   button.disabled = false;
 }
 
-const changeDestination = (evt, pristine, destinations, setState, updateElement, submitButton) => {
+const changeDestination = ({evt, pristine, destinations, setState, updateElement, submitButton}) => {
   evt.preventDefault();
   const isValid = pristine.validate(evt.target);
 
@@ -161,16 +161,20 @@ const changePrice = ({evt, pristine, submitButton, setState}) => {
 
 const changeOffers = ({evt, offers, state, setState}) => {
   evt.preventDefault();
+  let totalPrice;
   const chosenOffer = getOffersByType({
     type: state.type,
     offers
-  }).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0])).id;
-  if (state.offers.indexOf(chosenOffer) === -1) {
-    const update = {offers: [chosenOffer, ...state.offers]};
+  }).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0]));
+
+  if (state.offers.indexOf(chosenOffer.id) === -1) {
+    totalPrice = state.totalPrice + chosenOffer.price;
+    const update = {totalPrice, offers: [chosenOffer.id, ...state.offers]};
     setState(update);
   } else {
-    const update = {offers: [...state.offers]};
-    update.offers.splice(update.offers.indexOf(chosenOffer), 1);
+    totalPrice = state.totalPrice - chosenOffer.price;
+    const update = {totalPrice, offers: [...state.offers]};
+    update.offers.splice(update.offers.indexOf(chosenOffer.id), 1);
     setState(update);
   }
 };
