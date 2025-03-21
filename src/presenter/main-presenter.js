@@ -23,13 +23,14 @@ export default class MainPresenter {
   #pointOptionsModel;
   #destinationModel;
   #currentSortType = SortType.SORT_DAY;
-  #currentFilterType = FilterType.EVERYTHING;
+  #currentFilterType;
   #sortComponent;
   #currentBoardPoints = [];
   #types;
   #destinations;
+  #filterModel;
 
-  constructor(container, pointModel, pointOptionsModel, destinationModel) {
+  constructor({container, pointModel, filterModel, pointOptionsModel, destinationModel}) {
     this.#container = container;
     this.#pointModel = pointModel;
     this.#pointOptionsModel = pointOptionsModel;
@@ -38,8 +39,10 @@ export default class MainPresenter {
     this.#headerContainer = this.#container.querySelector('.trip-main');
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
+    this.#filterModel = filterModel;
 
     pointModel.addObserver(this.#handleModelEvent);
+    filterModel.addObserver(this.#handleModelEvent);
   }
 
   init() {
@@ -54,6 +57,9 @@ export default class MainPresenter {
   }
 
   get points() {
+    this.#currentFilterType = this.#filterModel.filter;
+    this.#currentBoardPoints = Object.entries(filter).filter(([filterType,]) =>
+      filterType === this.#currentFilterType).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
     switch (this.#currentSortType) {
       case SortType.SORT_DAY:
         this.#currentBoardPoints.sort(sortByDay);
@@ -128,9 +134,9 @@ export default class MainPresenter {
 
     render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
 
-    const points = Object.entries(filter).filter(([filterType,]) =>
-      filterType === this.#currentFilterType).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
-    this.#currentBoardPoints = points;
+    // const points = Object.entries(filter).filter(([filterType,]) =>
+    //   filterType === this.#currentFilterType).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
+    // this.#currentBoardPoints = points;
     this.#replaceSortComponent();
     this.#renderPoints({
       filterType: this.#currentFilterType,
@@ -200,12 +206,13 @@ export default class MainPresenter {
         });
         break;
       case UpdateType.MAJOR:
-        this.#clearBoard();
-        this.#renderPointBoard({
+        this.#replaceSortComponent();
+        this.#renderPoints({
+          filterType: this.#currentFilterType,
+          points: this.points,
           types: this.#types,
           destinations: this.#destinations,
-          mainContainer: this.#mainContainer,
-          headerContainer: this.#headerContainer
+          mainContainer: this.#mainContainer
         });
         break;
     }
