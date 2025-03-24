@@ -15,7 +15,7 @@ const setupUploadFormValidation = (form, price, destination, endDateInput, start
   pristine.addValidator(price, (value) => {
     const pattern = /^\d+$/;
     return pattern.test(value);
-  }, 'Число должно быть положительным', false);
+  }, 'Стоимость. Целое положительное число', false);
 
   pristine.addValidator(destination, (value) => {
     const pattern = /^(Paris|Chamonix|Venice|Nagasaki|Saint Petersburg|Rotterdam|Hiroshima|Madrid|Vien|Barcelona)$/;
@@ -39,6 +39,5 @@ const setupUploadFormValidation = (form, price, destination, endDateInput, start
 
   return pristine;
 };
-
 
 export {setupUploadFormValidation};

@@ -2,7 +2,6 @@ import PointPresenter from './point-presenter';
 import PointListView from '../view/point-list-view';
 import EmptyListView from '../view/empty-points-list-view';
 import TripInfoView from '../view/trip-info-view';
-import FilterView from '../view/filter-view';
 import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
 import {render, RenderPosition, replace} from '../framework/render';
@@ -15,7 +14,6 @@ export default class MainPresenter {
   #pointPresenters = new Map();
   #emptyList = new EmptyListView();
   #formAddMode = MODE_FORM_ADD.DEFAULT;
-  #filterView;
   #container;
   #mainContainer;
   #headerContainer;
@@ -100,8 +98,6 @@ export default class MainPresenter {
 
   #renderPointBoard({mainContainer, headerContainer}) {
     render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
-    this.#filterView = new FilterView(this.#handleFilterChange);
-    render(this.#filterView, headerContainer.querySelector('.trip-controls__filters'));
     this.#renderSort();
     this.#renderPoints({points: this.points, mainContainer});
   }
@@ -120,33 +116,6 @@ export default class MainPresenter {
     }
   }
 
-  #handleFilterChange = (evt) => {
-    if (evt.target.name === 'trip-filter') {
-      this.#changeFilterType(evt.target.value);
-    }
-  };
-
-  #changeFilterType(type) {
-    this.#currentFilterType = type;
-    this.#currentSortType = SortType.SORT_DAY;
-    this.#clearBoard();
-    this.#clearFilterMessage();
-
-    render(this.#pointListComponent, this.#container.querySelector('.trip-events'));
-
-    // const points = Object.entries(filter).filter(([filterType,]) =>
-    //   filterType === this.#currentFilterType).map(([, filterPoints]) => filterPoints(this.#pointModel.getPoints())).flat();
-    // this.#currentBoardPoints = points;
-    this.#replaceSortComponent();
-    this.#renderPoints({
-      filterType: this.#currentFilterType,
-      points: this.points,
-      types: this.#types,
-      destinations: this.#destinations,
-      mainContainer: this.#mainContainer
-    });
-  }
-
   #renderSort() {
     this.#sortComponent = new SortView({
       sortTypes: SORT_TYPES,
@@ -157,6 +126,7 @@ export default class MainPresenter {
   }
 
   #replaceSortComponent() {
+    this.#currentBoardPoints = this.points;
     const newSortComponent = new SortView({
       sortTypes: SORT_TYPES,
       onSortTypeChange: this.#handleSortTypeChange,
@@ -206,6 +176,9 @@ export default class MainPresenter {
         });
         break;
       case UpdateType.MAJOR:
+        this.#clearBoard();
+        this.#clearFilterMessage();
+        this.#currentFilterType = this.#filterModel.filter;
         this.#replaceSortComponent();
         this.#renderPoints({
           filterType: this.#currentFilterType,
@@ -247,8 +220,7 @@ export default class MainPresenter {
   #HandlePointAddClick = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
     if (this.#currentFilterType !== FilterType.EVERYTHING) {
-      this.#filterView.element.reset();
-      this.#changeFilterType(FilterType.EVERYTHING);
+      this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     }
 
     if (this.#currentSortType !== SortType.SORT_DAY) {

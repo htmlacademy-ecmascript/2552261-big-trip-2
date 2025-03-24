@@ -16,6 +16,7 @@ export default class PointFormEdit extends AbstractStatefulView {
   #handleDeleteClick;
   #pristine;
   #submitButton;
+  #inputPrice;
   #datepicker = null;
 
   constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick, onDeleteClick}) {
@@ -27,7 +28,10 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
     this.#handleDeleteClick = onDeleteClick;
+    // this.#inputPrice = this.element.querySelector('.event__input--price');
+
     this.#offers = offers;
+
     this._restoreHandlers();
   }
 
@@ -38,7 +42,8 @@ export default class PointFormEdit extends AbstractStatefulView {
       offers: formUtil.getOffersByType({type: this._state.type, offers: this.#offers}),
       destination: formUtil.getDestinationById({id: this._state.destination, destinations: this.#destinations}),
       types: this.#types,
-      destinations: this.#destinations
+      destinations: this.#destinations,
+      formType: 'Edit'
     });
   }
 
@@ -88,8 +93,11 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    const isValid = this.#pristine.validate();
     this._setState({basePrice: this._state.totalPrice});
+    if (this._state.totalPrice < 0) {
+      this.element.querySelector('.event__input--price').value = this._state.totalPrice;
+    }
+    const isValid = this.#pristine.validate();
     if (isValid) {
       this.#handleFormSubmit(this._state);
       this.#resetForm();

@@ -13,7 +13,7 @@ function createEventDestinationItem(destinations) {
   return destinations.map((destination) => `<option value="${destination.name}">${destination.name}</option>`).join('');
 }
 
-function createEventHeaderTemplate({point, type, types, destination, destinations}) {
+function createEventHeaderTemplate({point, type, types, destination, destinations, formType}) {
 
   const typeImage = type.image;
   const typeName = type.type;
@@ -63,8 +63,9 @@ ${createEventTypeItem(types, point)}
                   </div>
 
                   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-                  <button class="event__reset-btn" type="reset">Delete</button>
-                  <button class="event__rollup-btn" type="button">
+                  <button class="event__reset-btn" type="reset">${formType === 'Edit' ? 'Delete' : 'Cancel'}</button>
+                  ${formType === 'Edit' ? '<button class="event__rollup-btn" type="button">' : ''
+}
                     <span class="visually-hidden">Open event</span>
                   </button>
                 </header>`;
@@ -113,10 +114,10 @@ function createPointOffersTemplate(offers, point) {
                       </section>`;
 }
 
-function createPointEditTemplate({point, type, offers, destination, types, destinations}) {
+function createPointEditTemplate({point, type, offers, destination, types, destinations, formType}) {
   return `<li class="trip-events__item">
 <form class="event event--edit" action="#" method="post">
-${createEventHeaderTemplate({point, type, types, destination, destinations})}
+${createEventHeaderTemplate({point, type, types, destination, destinations, formType})}
 <section class="event__details">
 ${createPointOffersTemplate(offers, point)}
 ${createEventDestinationTemplate(destination)}
@@ -151,11 +152,11 @@ const changeDestination = ({evt, pristine, destinations, setState, updateElement
 const changePrice = ({evt, pristine, submitButton, setState}) => {
   const isValid = pristine.validate(evt.target);
   if (isValid) {
-    setState({basePrice: evt.target.value});
+    setState({basePrice: evt.target.value, totalPrice: evt.target.value});
     unblockSubmitButton(submitButton);
   } else {
     blockSubmitButton(submitButton);
-    setState({basePrice: 0});
+    setState({basePrice: 0, totalPrice: 0});
   }
 };
 

@@ -1,11 +1,8 @@
 import PointFormEdit from '../view/point-form-edit';
 import PointView from '../view/point-view';
-import {render, replace} from '../framework/render';
-import {remove} from '../framework/render';
-import {Mode, MODE_FORM_ADD} from '../const';
+import {remove, render, replace} from '../framework/render';
+import {Mode, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
 import {getTypeImage} from '../utils/point';
-import {UpdateType} from '../const';
-import {UserAction} from '../const';
 import PointFormAdd from '../view/point-form-add';
 
 export default class PointPresenter {
@@ -129,6 +126,7 @@ export default class PointPresenter {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
+      this.#pointFormEdit.reset(this.#point);
       this.#replaceFormToPoint();
     }
   }
