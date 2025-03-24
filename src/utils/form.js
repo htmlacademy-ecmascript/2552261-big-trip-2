@@ -66,7 +66,7 @@ ${createEventTypeItem(types, point)}
                   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
                   <button class="event__reset-btn" type="reset">${formType === 'Edit' ? 'Delete' : 'Cancel'}</button>
                   ${formType === 'Edit' ? '<button class="event__rollup-btn" type="button">' : ''
-}
+  }
                     <span class="visually-hidden">Open event</span>
                   </button>
                 </header>`;
@@ -140,13 +140,12 @@ const changeDestination = ({evt, pristine, destinations, state, setState, update
   const isValid = pristine.validate(evt.target);
 
   if (isValid || evt.target.value === '') {
-    const newDestination = destinations.find((destination) => destination.name === evt.target.value);
-    setState({destination: newDestination, totalPrice: state.basePrice, offers: []});
-    updateElement({destination: newDestination?.id ? newDestination.id : ''});
-    unblockSubmitButton(submitButton);
-  } else {
-    setState({destination: {}, totalPrice: state.basePrice, offers: []});
-    updateElement({destination: ''});
+    const newDestination = destinations.find((destination) => destination.name.toLowerCase() === evt.target.value.toLowerCase());
+    if (newDestination) {
+      setState({destination: changeFirstLetter(newDestination.name), totalPrice: state.basePrice, offers: []});
+      updateElement({destination: newDestination?.id ? newDestination.id : ''});
+      unblockSubmitButton(submitButton);
+    }
   }
 };
 
@@ -186,30 +185,43 @@ const changeOffers = ({evt, offers, state, setState}) => {
   }
 };
 
-const setDatepicker = ({element, datepicker, dueDateChangeHandler, inputElement}) => {
-  datepicker = flatpickr(inputElement.querySelector(`#${element}`),
-    {
-      enableTime: true,
-      minDate: 'today',
-      dateFormat: 'd/m/y H:i',
-      onChange: dueDateChangeHandler,
-    },
-  );
-  return datepicker;
-};
+const setDatepicker = ({
+  element,
+  dueDateChangeHandler,
+  inputElement
+}) => flatpickr(inputElement.querySelector(`#${element}`),
+  {
+    enableTime: true,
+    minDate: 'today',
+    dateFormat: 'd/m/y H:i',
+    onChange: dueDateChangeHandler,
+  },
+);
 
-const dueDateChange = ({userDate, event, pristine, domElement, submitButton, setState}) => {
-  const isValidEndDate = pristine.validate(domElement.querySelector('#event-end-time-1'));
+const dueDateChange = ({
+  userDate,
+  event,
+  pristine,
+  domElement,
+  submitButton,
+  setState,
+  datepickerFrom,
+  datepickerTo
+}) => {
   const isValidStartDate = pristine.validate(domElement.querySelector('#event-start-time-1'));
+  const isValidEndDate = pristine.validate(domElement.querySelector('#event-end-time-1'));
+
   switch (event.input.name) {
     case 'event-start-time':
       if (isValidStartDate) {
         setState({dateFrom: dayjs.utc(userDate).toISOString()});
+        datepickerTo.set('minDate', new Date(userDate));
       }
       break;
     case 'event-end-time':
       if (isValidEndDate) {
         setState({dateTo: dayjs.utc(userDate).toISOString()});
+        datepickerFrom.set('maxDate', new Date(userDate));
         unblockSubmitButton(submitButton);
       } else {
         setState({dateTo: ''});

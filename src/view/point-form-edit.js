@@ -16,7 +16,8 @@ export default class PointFormEdit extends AbstractStatefulView {
   #handleDeleteClick;
   #pristine;
   #submitButton;
-  #datepicker = null;
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
   constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick, onDeleteClick}) {
     super();
@@ -46,18 +47,14 @@ export default class PointFormEdit extends AbstractStatefulView {
   }
 
   _restoreHandlers() {
-    formUtil.setDatepicker({
+    this.#datepickerFrom = formUtil.setDatepicker({
       element: 'event-start-time-1',
-      datepicker: this.#datepicker,
       dueDateChangeHandler: this.#dueDateChangeHandler,
-      state: this._state,
       inputElement: this.element
     });
-    formUtil.setDatepicker({
+    this.#datepickerTo = formUtil.setDatepicker({
       element: 'event-end-time-1',
-      datepicker: this.#datepicker,
       dueDateChangeHandler: this.#dueDateChangeHandler,
-      state: this._state,
       inputElement: this.element
     });
     this.#initPristine();
@@ -72,7 +69,7 @@ export default class PointFormEdit extends AbstractStatefulView {
   }
 
   #initPristine() {
-    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-end-time-1'), this.element.querySelector('#event-start-time-1'));
+    this.#pristine = setupUploadFormValidation(this.#destinations, this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-end-time-1'), this.element.querySelector('#event-start-time-1'));
   }
 
   static parsePointToState(point) {
@@ -127,10 +124,11 @@ export default class PointFormEdit extends AbstractStatefulView {
       updateElement: this.updateElement.bind(this),
       submitButton: this.#submitButton
     });
-    const isValid = this.#pristine.validate(evt.target);
-    if (!isValid) {
-      formUtil.blockSubmitButton(this.#submitButton);
-    }
+    // const isValid = this.#pristine.validate(evt.target);
+    // console.log(isValid);
+    // if (!isValid) {
+    //   formUtil.blockSubmitButton(this.#submitButton);
+    // }
   };
 
   #pointPriceChangeHandler = (evt) => {
@@ -156,7 +154,9 @@ export default class PointFormEdit extends AbstractStatefulView {
       pristine: this.#pristine,
       domElement: this.element,
       submitButton: this.#submitButton,
-      setState: this._setState.bind(this)
+      setState: this._setState.bind(this),
+      datepickerFrom: this.#datepickerFrom,
+      datepickerTo: this.#datepickerTo
     });
   };
 

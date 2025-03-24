@@ -14,9 +14,10 @@ export default class PointFormAdd extends AbstractStatefulView {
   #handleFormClose;
   #handleEscKeyDown;
   #handleAddNewPointClick;
-  #datepicker = null;
   #submitButton;
   #pristine;
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
   constructor({
     destination,
@@ -55,18 +56,14 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   _restoreHandlers() {
     this.#initPristine();
-    formUtil.setDatepicker({
+    this.#datepickerFrom = formUtil.setDatepicker({
       element: 'event-start-time-1',
-      datepicker: this.#datepicker,
       dueDateChangeHandler: this.#dueDateChangeHandler,
-      state: this._state,
       inputElement: this.element
     });
-    formUtil.setDatepicker({
+    this.#datepickerTo = formUtil.setDatepicker({
       element: 'event-end-time-1',
-      datepicker: this.#datepicker,
       dueDateChangeHandler: this.#dueDateChangeHandler,
-      state: this._state,
       inputElement: this.element
     });
     this.#submitButton = this.element.querySelector('.event__save-btn');
@@ -93,7 +90,7 @@ export default class PointFormAdd extends AbstractStatefulView {
   }
 
   #initPristine() {
-    this.#pristine = setupUploadFormValidation(this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-end-time-1'), this.element.querySelector('#event-start-time-1'));
+    this.#pristine = setupUploadFormValidation(this.#destinations, this.element.querySelector('.event--edit'), this.element.querySelector('.event__input--price'), this.element.querySelector('.event__input--destination'), this.element.querySelector('#event-end-time-1'), this.element.querySelector('#event-start-time-1'));
   }
 
   #formSubmitHandler = (evt) => {
@@ -158,7 +155,9 @@ export default class PointFormAdd extends AbstractStatefulView {
       pristine: this.#pristine,
       domElement: this.element,
       submitButton: this.#submitButton,
-      setState: this._setState.bind(this)
+      setState: this._setState.bind(this),
+      datepickerFrom: this.#datepickerFrom,
+      datepickerTo: this.#datepickerTo
     });
   };
 }

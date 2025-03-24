@@ -1,9 +1,10 @@
 import Pristine from 'pristinejs/dist/pristine.min';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+
 dayjs.extend(customParseFormat);
 
-const setupUploadFormValidation = (form, price, destination, endDateInput, startDateInput) => {
+const setupUploadFormValidation = (destinations, form, price, destination, endDateInput, startDateInput) => {
   const pristine = new Pristine(form, {
     classTo: 'event__field-group',
     errorTextParent: 'event__field-group',
@@ -15,19 +16,21 @@ const setupUploadFormValidation = (form, price, destination, endDateInput, start
   pristine.addValidator(price, (value) => {
     const pattern = /^\d+$/;
     return pattern.test(value);
-  }, 'Стоимость. Целое положительное число', false);
+  }, 'Стоимость. Целое положительное число', 0, false);
 
   pristine.addValidator(destination, (value) => {
-    const pattern = /^(Paris|Chamonix|Venice|Nagasaki|Saint Petersburg|Rotterdam|Hiroshima|Madrid|Vien|Barcelona)$/;
-    return pattern.test(value);
-  }, 'Не выбрана точка маршрута', 1, false);
+    const isValid = destinations.some((dest) => dest.name.toLowerCase() === value.toLowerCase());
+    return isValid;
+  }, 'Не выбрана точка маршрута', 0, false);
 
 
   pristine.addValidator(endDateInput, (value) => {
-    const startDate = dayjs(startDateInput.value, 'DD/MM/YY HH:mm');
     const endDate = dayjs(value, 'DD/MM/YY HH:mm');
-    return startDate.isBefore(endDate);
-  }, 'Дата завершения раньше начала или пустая', 0,false);
+    if (endDate.isValid()) {
+      return true;
+    }
+    return false;
+  }, 'Не выбрана дата маршрута', 0, false);
 
   pristine.addValidator(startDateInput, (value) => {
     const startDate = dayjs(value, 'DD/MM/YY HH:mm');
@@ -35,8 +38,7 @@ const setupUploadFormValidation = (form, price, destination, endDateInput, start
       return true;
     }
     return false;
-  }, 'Дата начала события позже завершения или пустая', 0,false);
-
+  }, 'Не выбрана дата маршрута', 0, false);
   return pristine;
 };
 
