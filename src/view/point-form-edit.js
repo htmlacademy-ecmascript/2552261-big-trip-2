@@ -16,7 +16,6 @@ export default class PointFormEdit extends AbstractStatefulView {
   #handleDeleteClick;
   #pristine;
   #submitButton;
-  #inputPrice;
   #datepicker = null;
 
   constructor({point, destination, offers, types, destinations, onFormSubmit, onCloseClick, onDeleteClick}) {
@@ -28,7 +27,6 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
     this.#handleDeleteClick = onDeleteClick;
-    // this.#inputPrice = this.element.querySelector('.event__input--price');
 
     this.#offers = offers;
 
@@ -140,6 +138,8 @@ export default class PointFormEdit extends AbstractStatefulView {
       evt,
       pristine: this.#pristine,
       submitButton: this.#submitButton,
+      state: this._state,
+      offers: this.#offers,
       setState: this._setState.bind(this)
     });
   };

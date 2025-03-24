@@ -140,6 +140,8 @@ export default class PointFormAdd extends AbstractStatefulView {
       evt,
       pristine: this.#pristine,
       submitButton: this.#submitButton,
+      state: this._state,
+      offers: this.#offers,
       setState: this._setState.bind(this)
     });
   };

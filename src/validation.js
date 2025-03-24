@@ -1,4 +1,4 @@
-import Pristine from './vendor/pristine';
+import Pristine from 'pristinejs/dist/pristine.min';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);

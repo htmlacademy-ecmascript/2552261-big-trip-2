@@ -4,6 +4,7 @@ import {remove, render, replace} from '../framework/render';
 import {Mode, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
 import {getTypeImage} from '../utils/point';
 import PointFormAdd from '../view/point-form-add';
+import {nanoid} from 'nanoid';
 
 export default class PointPresenter {
 
@@ -175,7 +176,7 @@ export default class PointPresenter {
     this.#handleDataChange(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
-      point,
+      {id: nanoid(), ...point},
     );
   };
 

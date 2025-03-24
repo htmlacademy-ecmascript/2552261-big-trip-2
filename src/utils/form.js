@@ -1,6 +1,7 @@
 import {changeFirstLetter, formatDateTimeZone, formatString} from './util';
 import flatpickr from 'flatpickr';
 import dayjs from 'dayjs';
+import he from 'he';
 
 function createEventTypeItem(types, point) {
   return types.map((type) => `<div class="event__type-item">
@@ -40,7 +41,7 @@ ${createEventTypeItem(types, point)}
                     <label class="event__label  event__type-output" for="event-destination-1">
                       ${typeName}
                     </label>
-                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination?.name ? destination.name : ''}" list="destination-list-1">
+                    <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination?.name ? he.encode(destination.name) : ''}" list="destination-list-1">
                     <datalist id="destination-list-1">
                     ${createEventDestinationItem(destinations)}
                     </datalist>
@@ -134,25 +135,30 @@ function unblockSubmitButton(button) {
   button.disabled = false;
 }
 
-const changeDestination = ({evt, pristine, destinations, setState, updateElement, submitButton}) => {
+const changeDestination = ({evt, pristine, destinations, state, setState, updateElement, submitButton}) => {
   evt.preventDefault();
   const isValid = pristine.validate(evt.target);
 
   if (isValid || evt.target.value === '') {
     const newDestination = destinations.find((destination) => destination.name === evt.target.value);
-    setState({destination: newDestination});
+    setState({destination: newDestination, totalPrice: state.basePrice, offers: []});
     updateElement({destination: newDestination?.id ? newDestination.id : ''});
     unblockSubmitButton(submitButton);
   } else {
-    setState({destination: {}});
+    setState({destination: {}, totalPrice: state.basePrice, offers: []});
     updateElement({destination: ''});
   }
 };
 
-const changePrice = ({evt, pristine, submitButton, setState}) => {
+const changePrice = ({evt, pristine, submitButton, state, offers, setState}) => {
   const isValid = pristine.validate(evt.target);
   if (isValid) {
-    setState({basePrice: evt.target.value, totalPrice: evt.target.value});
+    let totalPrice = evt.target.value;
+    const currentOffers = getOffersByType({type: state.type, offers});
+    state.offers.forEach((offer) => {
+      totalPrice = getOffersById({id: offer, offers: currentOffers}).price + Number(totalPrice);
+    });
+    setState({basePrice: evt.target.value, totalPrice});
     unblockSubmitButton(submitButton);
   } else {
     blockSubmitButton(submitButton);
@@ -169,11 +175,11 @@ const changeOffers = ({evt, offers, state, setState}) => {
   }).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0]));
 
   if (state.offers.indexOf(chosenOffer.id) === -1) {
-    totalPrice = state.totalPrice + chosenOffer.price;
+    totalPrice = Number(state.totalPrice) + chosenOffer.price;
     const update = {totalPrice, offers: [chosenOffer.id, ...state.offers]};
     setState(update);
   } else {
-    totalPrice = state.totalPrice - chosenOffer.price;
+    totalPrice = Number(state.totalPrice) - chosenOffer.price;
     const update = {totalPrice, offers: [...state.offers]};
     update.offers.splice(update.offers.indexOf(chosenOffer.id), 1);
     setState(update);
@@ -216,6 +222,10 @@ const dueDateChange = ({userDate, event, pristine, domElement, submitButton, set
 
 function getOffersByType({type, offers}) {
   return offers.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
+}
+
+function getOffersById({id, offers}) {
+  return offers.find((obj) => obj.id.localeCompare(id) === 0);
 }
 
 function getDestinationById({id, destinations}) {
