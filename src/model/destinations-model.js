@@ -1,4 +1,3 @@
-import {UpdateType} from '../const';
 import Observable from '../framework/observable';
 
 export default class DestinationsModel extends Observable {
@@ -17,7 +16,6 @@ export default class DestinationsModel extends Observable {
     } catch (err) {
       this.#destinations = [];
     }
-    this._notify(UpdateType.INIT);
   }
 
   getDestinations() {

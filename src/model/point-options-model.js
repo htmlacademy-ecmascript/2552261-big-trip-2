@@ -1,21 +1,42 @@
 import {mockPointOptions} from '../mock/pointOption';
+import Observable from '../framework/observable';
 
-export default class PointOptionsModel {
-  options = mockPointOptions;
+export default class PointOptionsModel extends Observable {
+  #offers = mockPointOptions;
+  #offersApiService;
+
+  constructor({offerApiService}) {
+    super();
+    this.#offersApiService = offerApiService;
+  }
+
+  async init() {
+    try {
+      const offers = await this.#offersApiService.offers;
+      this.#offers = offers.map((offer) => this.#adaptToClient(offer));
+    } catch (err) {
+      this.#offers = [];
+    }
+  }
 
   getOptions() {
-    return this.options;
+    return this.#offers;
   }
 
   getAllTypes() {
-    return this.options.map((option) => option.type);
+    return this.#offers.map((option) => option.type);
   }
 
   getOffersByType(type) {
-    return this.options.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
+    return this.#offers.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
   }
 
-  getOffersById(id) {
-    return this.options.find((obj) => obj.id.localeCompare(id) === 0);
+  #adaptToClient(offer) {
+    const adaptOffer = {
+      ...offer,
+      type: offer['type'],
+      offers: offer['offers']
+    };
+    return adaptOffer;
   }
 }

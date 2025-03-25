@@ -46,8 +46,7 @@ export default class MainPresenter {
   }
 
   init() {
-    this.#currentBoardPoints = [...this.#pointModel.getPoints()];
-
+    this.#currentBoardPoints = this.#pointModel.getPoints();
     this.#renderPointBoard({
       types: this.#types,
       destinations: this.#destinations,
@@ -130,7 +129,7 @@ export default class MainPresenter {
     this.#sortComponent = new SortView({
       sortTypes: SORT_TYPES,
       onSortTypeChange: this.#handleSortTypeChange,
-      pointListLength: this.#currentBoardPoints.length
+      pointListLength: this.points.length
     });
     render(this.#sortComponent, this.#mainContainer);
   }

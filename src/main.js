@@ -7,21 +7,21 @@ import FilterPresenter from './presenter/filter-presenter';
 
 import PointApiService from './point-api-service';
 import DestinationApiService from './destination-api-service';
+import OfferApiService from './offer-api-service';
 
 const AUTHORIZATION = 'Basic SyU27srgS7890678wCvlJ1sa2G';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
 const pointsModel = new PointsModel({pointApiService: new PointApiService(END_POINT, AUTHORIZATION)});
-const offersModel = new PointOptionsModel();
+const offersModel = new PointOptionsModel({offerApiService: new OfferApiService(END_POINT, AUTHORIZATION)});
 const filterModel = new FilterModel();
 const destinationsModel = new DestinationsModel({destinationApiService: new DestinationApiService(END_POINT, AUTHORIZATION)});
 
 const mainContainer = document.querySelector('.page-body');
 const filterContainer = document.querySelector('.trip-controls__filters');
 
-const filterPresenter = new FilterPresenter({filterContainer, filterModel, pointsModel});
-
-destinationsModel.init().then(() => {
+Promise.all([destinationsModel.init(), offersModel.init()]).then(() => {
+  const filterPresenter = new FilterPresenter({filterContainer, filterModel, pointsModel});
   const mainPresenter = new MainPresenter({
     container: mainContainer,
     filterModel,
