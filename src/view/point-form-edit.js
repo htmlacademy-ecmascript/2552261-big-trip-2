@@ -28,7 +28,6 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
     this.#handleDeleteClick = onDeleteClick;
-
     this.#offers = offers;
 
     this._restoreHandlers();

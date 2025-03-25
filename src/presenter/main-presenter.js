@@ -4,13 +4,15 @@ import EmptyListView from '../view/empty-points-list-view';
 import TripInfoView from '../view/trip-info-view';
 import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
-import {render, RenderPosition, replace} from '../framework/render';
+import {render, RenderPosition, replace, remove} from '../framework/render';
 import {FilterType, MODE_FORM_ADD, SORT_TYPES, SortType, UpdateType, UserAction} from '../const';
 import {filter} from '../utils/filter';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
+import LoadingView from '../view/loading-view';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
+  #loadingComponent = new LoadingView();
   #pointPresenters = new Map();
   #emptyList = new EmptyListView();
   #formAddMode = MODE_FORM_ADD.DEFAULT;
@@ -27,6 +29,7 @@ export default class MainPresenter {
   #types;
   #destinations;
   #filterModel;
+  #isLoading = true;
 
   constructor({container, pointModel, filterModel, pointOptionsModel, destinationModel}) {
     this.#container = container;
@@ -38,7 +41,6 @@ export default class MainPresenter {
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
     this.#filterModel = filterModel;
-
     pointModel.addObserver(this.#handleModelEvent);
     filterModel.addObserver(this.#handleModelEvent);
   }
@@ -97,9 +99,17 @@ export default class MainPresenter {
   }
 
   #renderPointBoard({mainContainer, headerContainer}) {
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
     render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
     this.#renderSort();
     this.#renderPoints({points: this.points, mainContainer});
+  }
+
+  #renderLoading() {
+    render(this.#loadingComponent, this.#mainContainer);
   }
 
   #clearBoard() {
@@ -187,6 +197,11 @@ export default class MainPresenter {
           destinations: this.#destinations,
           mainContainer: this.#mainContainer
         });
+        break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderPointBoard({mainContainer: this.#mainContainer, headerContainer: this.#headerContainer});
         break;
     }
   };

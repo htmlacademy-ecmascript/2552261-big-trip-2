@@ -44,7 +44,7 @@ export default class PointPresenter {
     this.#destinations = destinations;
     if (!PointPresenter.#editButton && !PointPresenter.#pointFormAdd) {
       PointPresenter.#editButton = document.querySelector('.trip-main__event-add-btn');
-      PointPresenter.#editButton.addEventListener('click', this.#pointAddClickHandler/*this.#pointAddClickHandler*/);
+      PointPresenter.#editButton.addEventListener('click', this.#pointAddClickHandler);
       PointPresenter.#pointFormAdd = new PointFormAdd({
         offers: this.#pointOptionsModel.getOptions(),
         types: this.#types,

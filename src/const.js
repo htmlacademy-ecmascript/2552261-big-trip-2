@@ -35,6 +35,7 @@ const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
+  INIT: 'INIT',
 };
 
 const SORT_TYPES = ['sort-day', 'sort-event', 'sort-time', 'sort-price', 'sort-offer'];
