@@ -238,7 +238,6 @@ export default class MainPresenter {
     if (this.#currentFilterType !== FilterType.EVERYTHING) {
       this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     }
-
     if (this.#currentSortType !== SortType.SORT_DAY) {
       this.#replaceSortComponent();
       this.#handleSortTypeChange(SortType.SORT_DAY);
