@@ -73,8 +73,21 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   static parsePointToState(point) {
     return {
-      totalPrice: point.basePrice, ...point,
+      totalPrice: point.basePrice,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+      ...point,
     };
+  }
+
+  static parseStateToPoint(state) {
+    const point = {...state};
+    delete point.totalPrice;
+    delete point.isDisabled;
+    delete point.isSaving;
+    delete point.isDeleting;
+    return point;
   }
 
   reset(point) {
@@ -93,7 +106,7 @@ export default class PointFormEdit extends AbstractStatefulView {
     }
     const isValid = this.#pristine.validate();
     if (isValid) {
-      this.#handleFormSubmit(this._state);
+      this.#handleFormSubmit(PointFormEdit.parseStateToPoint(this._state));
     }
   };
 
