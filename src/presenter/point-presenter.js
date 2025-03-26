@@ -205,4 +205,23 @@ export default class PointPresenter {
     document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
     PointPresenter.#editButton.disabled = true;
   };
+
+
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointFormEdit.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointFormEdit.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
 }

@@ -50,7 +50,10 @@ export default class PointFormAdd extends AbstractStatefulView {
       destination: formUtil.getDestinationById({id: this._state.destination, destinations: this.#destinations}),
       types: this.#types,
       destinations: this.#destinations,
-      formType: 'Add'
+      formType: 'Add',
+      isSaving: this._state.isSaving,
+      isDeleting: this._state.isDeleting,
+      isDisabled: this._state.isDisabled
     });
   }
 

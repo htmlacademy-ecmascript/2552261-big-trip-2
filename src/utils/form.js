@@ -14,7 +14,14 @@ function createEventDestinationItem(destinations) {
   return destinations.map((destination) => `<option value="${destination.name}">${destination.name}</option>`).join('');
 }
 
-function createEventHeaderTemplate({point, type, types, destination, destinations, formType}) {
+function createButtonLabel(formType, isDeleting) {
+  if (formType === 'Edit') {
+    return isDeleting ? 'Deleting...' : 'Delete';
+  }
+  return 'Cancel';
+}
+
+function createEventHeaderTemplate({point, type, types, destination, destinations, formType, isSaving, isDeleting, isDisabled}) {
 
   const typeImage = type.image;
   const typeName = type.type;
@@ -63,8 +70,8 @@ ${createEventTypeItem(types, point)}
                     <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${point.basePrice}">
                   </div>
 
-                  <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-                  <button class="event__reset-btn" type="reset">${formType === 'Edit' ? 'Delete' : 'Cancel'}</button>
+                  <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
+                  <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${createButtonLabel(formType, isDeleting)}</button>
                   ${formType === 'Edit' ? '<button class="event__rollup-btn" type="button">' : ''
 }
                     <span class="visually-hidden">Open event</span>
@@ -115,10 +122,10 @@ function createPointOffersTemplate(offers, point) {
                       </section>`;
 }
 
-function createPointEditTemplate({point, type, offers, destination, types, destinations, formType}) {
+function createPointEditTemplate({point, type, offers, destination, types, destinations, formType, isSaving, isDeleting, isDisabled}) {
   return `<li class="trip-events__item">
 <form class="event event--edit" action="#" method="post">
-${createEventHeaderTemplate({point, type, types, destination, destinations, formType})}
+${createEventHeaderTemplate({point, type, types, destination, destinations, formType, isSaving, isDeleting, isDisabled})}
 <section class="event__details">
 ${createPointOffersTemplate(offers, point)}
 ${createEventDestinationTemplate(destination)}
