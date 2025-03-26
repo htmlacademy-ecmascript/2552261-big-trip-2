@@ -5,9 +5,9 @@ import PointOptionsModel from './model/point-options-model';
 import DestinationsModel from './model/destinations-model';
 import FilterPresenter from './presenter/filter-presenter';
 
-import PointApiService from './point-api-service';
-import DestinationApiService from './destination-api-service';
-import OfferApiService from './offer-api-service';
+import PointApiService from './api/point-api-service';
+import DestinationApiService from './api/destination-api-service';
+import OfferApiService from './api/offer-api-service';
 
 const AUTHORIZATION = 'Basic SyU27srgS7890678wCvlJ1sa2G';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';

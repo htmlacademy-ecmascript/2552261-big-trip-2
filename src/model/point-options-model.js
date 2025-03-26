@@ -1,8 +1,7 @@
-import {mockPointOptions} from '../mock/pointOption';
 import Observable from '../framework/observable';
 
 export default class PointOptionsModel extends Observable {
-  #offers = mockPointOptions;
+  #offers = [];
   #offersApiService;
 
   constructor({offerApiService}) {

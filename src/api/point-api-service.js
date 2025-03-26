@@ -1,29 +1,23 @@
-import ApiService from './framework/api-service';
+import ApiService from '../framework/api-service';
+import {URL} from '../const';
 
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
 };
 
 export default class PointApiService extends ApiService {
+
   get points() {
-    return this._load({url: 'points'})
+    return this._load({url: URL.POINTS})
       .then(ApiService.parseResponse);
   }
 
-  // get offers() {
-  //   return this._load({url: 'offers'})
-  //     .then(ApiService.parseResponse);
-  // }
-  //
-  // get destinations() {
-  //   return this._load({url: 'destinations'})
-  //     .then(ApiService.parseResponse);
-  // }
-
   async updatePoint(point) {
     const response = await this._load({
-      url: `points/${point.id}`,
+      url: `${URL.POINTS}/${point.id}`,
       method: Method.PUT,
       body: JSON.stringify(this.#adaptToServer(point)),
       headers: new Headers({'Content-Type': 'application/json'}),
@@ -34,15 +28,32 @@ export default class PointApiService extends ApiService {
     return parsedResponse;
   }
 
+  async addPoint(point) {
+    const response = await this._load({
+      url: URL.POINTS,
+      method: Method.POST,
+      body: JSON.stringify(this.#adaptToServer(point)),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    });
+
+    const parsedResponse = await ApiService.parseResponse(response);
+
+    return parsedResponse;
+  }
+
+  async deletePoint(point) {
+    const response = this._load({url: `${URL.POINTS}/${point.id}`, method: Method.DELETE});
+    return response;
+  }
+
   #adaptToServer(point) {
     const adaptPoint = {
       ...point,
-      'id': point.id,
-      'base_price': point.basePrice,
+      'base_price': Number(point.basePrice),
       'date_from': point.dateFrom,
       'date_to': point.dateTo,
       'destination': point.destination,
-      'is_favorite': point.isFavorite,
+      'is_favorite': Boolean(point.isFavorite),
       'offers': point.offers,
       'type': point.type,
     };
@@ -51,7 +62,7 @@ export default class PointApiService extends ApiService {
     delete adaptPoint.dateFrom;
     delete adaptPoint.dateTo;
     delete adaptPoint.isFavorite;
-
+    delete adaptPoint.totalPrice;
 
     return adaptPoint;
   }
