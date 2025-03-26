@@ -4,7 +4,6 @@ import {remove, render, replace} from '../framework/render';
 import {Mode, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
 import {getTypeImage} from '../utils/point';
 import PointFormAdd from '../view/point-form-add';
-import {nanoid} from 'nanoid';
 
 export default class PointPresenter {
 
@@ -44,7 +43,7 @@ export default class PointPresenter {
     this.#destinations = destinations;
     if (!PointPresenter.#editButton && !PointPresenter.#pointFormAdd) {
       PointPresenter.#editButton = document.querySelector('.trip-main__event-add-btn');
-      PointPresenter.#editButton.addEventListener('click', this.#pointAddClickHandler/*this.#pointAddClickHandler*/);
+      PointPresenter.#editButton.addEventListener('click', this.#pointAddClickHandler);
       PointPresenter.#pointFormAdd = new PointFormAdd({
         offers: this.#pointOptionsModel.getOptions(),
         types: this.#types,
@@ -176,7 +175,7 @@ export default class PointPresenter {
     this.#handleDataChange(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
-      {id: nanoid(), ...point},
+      point,
     );
   };
 

@@ -28,7 +28,6 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
     this.#handleDeleteClick = onDeleteClick;
-
     this.#offers = offers;
 
     this._restoreHandlers();
@@ -95,9 +94,6 @@ export default class PointFormEdit extends AbstractStatefulView {
     const isValid = this.#pristine.validate();
     if (isValid) {
       this.#handleFormSubmit(this._state);
-      this.#resetForm();
-    } else {
-      formUtil.blockSubmitButton(this.#submitButton);
     }
   };
 
@@ -124,11 +120,6 @@ export default class PointFormEdit extends AbstractStatefulView {
       updateElement: this.updateElement.bind(this),
       submitButton: this.#submitButton
     });
-    // const isValid = this.#pristine.validate(evt.target);
-    // console.log(isValid);
-    // if (!isValid) {
-    //   formUtil.blockSubmitButton(this.#submitButton);
-    // }
   };
 
   #pointPriceChangeHandler = (evt) => {

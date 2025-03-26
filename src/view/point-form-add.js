@@ -99,11 +99,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     const isValid = this.#pristine.validate();
     if (isValid) {
       this.#handleAddNewPointClick(this._state);
-      formUtil.unblockSubmitButton(this.#submitButton);
       this.#handleFormClose();
-
-    } else {
-      formUtil.blockSubmitButton(this.#submitButton);
     }
   };
 

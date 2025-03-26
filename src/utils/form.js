@@ -66,7 +66,7 @@ ${createEventTypeItem(types, point)}
                   <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
                   <button class="event__reset-btn" type="reset">${formType === 'Edit' ? 'Delete' : 'Cancel'}</button>
                   ${formType === 'Edit' ? '<button class="event__rollup-btn" type="button">' : ''
-  }
+}
                     <span class="visually-hidden">Open event</span>
                   </button>
                 </header>`;
@@ -127,29 +127,20 @@ ${createEventDestinationTemplate(destination)}
 </li>`;
 }
 
-function blockSubmitButton(button) {
-  button.disabled = true;
-}
-
-function unblockSubmitButton(button) {
-  button.disabled = false;
-}
-
-const changeDestination = ({evt, pristine, destinations, state, setState, updateElement, submitButton}) => {
+const changeDestination = ({evt, pristine, destinations, state, setState, updateElement}) => {
   evt.preventDefault();
   const isValid = pristine.validate(evt.target);
 
   if (isValid || evt.target.value === '') {
     const newDestination = destinations.find((destination) => destination.name.toLowerCase() === evt.target.value.toLowerCase());
     if (newDestination) {
-      setState({destination: changeFirstLetter(newDestination.name), totalPrice: state.basePrice, offers: []});
+      setState({destination: changeFirstLetter(newDestination.name), totalPrice: state.basePrice});
       updateElement({destination: newDestination?.id ? newDestination.id : ''});
-      unblockSubmitButton(submitButton);
     }
   }
 };
 
-const changePrice = ({evt, pristine, submitButton, state, offers, setState}) => {
+const changePrice = ({evt, pristine, state, offers, setState}) => {
   const isValid = pristine.validate(evt.target);
   if (isValid) {
     let totalPrice = evt.target.value;
@@ -158,9 +149,7 @@ const changePrice = ({evt, pristine, submitButton, state, offers, setState}) => 
       totalPrice = getOffersById({id: offer, offers: currentOffers}).price + Number(totalPrice);
     });
     setState({basePrice: evt.target.value, totalPrice});
-    unblockSubmitButton(submitButton);
   } else {
-    blockSubmitButton(submitButton);
     setState({basePrice: 0, totalPrice: 0});
   }
 };
@@ -203,7 +192,6 @@ const dueDateChange = ({
   event,
   pristine,
   domElement,
-  submitButton,
   setState,
   datepickerFrom,
   datepickerTo
@@ -222,11 +210,9 @@ const dueDateChange = ({
       if (isValidEndDate) {
         setState({dateTo: dayjs.utc(userDate).toISOString()});
         datepickerFrom.set('maxDate', new Date(userDate));
-        unblockSubmitButton(submitButton);
       } else {
         setState({dateTo: ''});
         domElement.querySelector('#event-end-time-1').value = '';
-        blockSubmitButton(submitButton);
       }
       break;
   }
@@ -246,8 +232,6 @@ function getDestinationById({id, destinations}) {
 
 
 export {
-  blockSubmitButton,
-  unblockSubmitButton,
   changeDestination,
   changePrice,
   changeOffers,
