@@ -9,11 +9,13 @@ import {FilterType, MODE_FORM_ADD, SORT_TYPES, SortType, UpdateType, UserAction}
 import {filter} from '../utils/filter';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
 import LoadingView from '../view/loading-view';
+import NewPointPresenter from "./new-point-presenter";
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
   #loadingComponent = new LoadingView();
   #pointPresenters = new Map();
+  #newPointPresenter;
   #emptyList = new EmptyListView();
   #formAddMode = MODE_FORM_ADD.DEFAULT;
   #container;
@@ -30,6 +32,7 @@ export default class MainPresenter {
   #destinations;
   #filterModel;
   #isLoading = true;
+  #addButton;
 
   constructor({container, pointModel, filterModel, pointOptionsModel, destinationModel}) {
     this.#container = container;
@@ -41,6 +44,15 @@ export default class MainPresenter {
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
     this.#filterModel = filterModel;
+    this.#addButton = document.querySelector('.trip-main__event-add-btn');
+    this.#addButton.addEventListener('click', this.#pointAddClickHandler);
+    this.#newPointPresenter = new NewPointPresenter({
+      pointListContainer: this.#pointListComponent.element,
+      pointOptionsModel: this.#pointOptionsModel,
+      destinationModel: this.#destinationModel,
+      handleDataChange: this.#handleViewAction,
+      addButton: this.#addButton,
+      types: this.#types});
     pointModel.addObserver(this.#handleModelEvent);
     filterModel.addObserver(this.#handleModelEvent);
   }
@@ -78,11 +90,11 @@ export default class MainPresenter {
       pointListContainer: this.#pointListComponent.element,
       onFavoritesChange: this.#handleViewAction,
       onModeChange: this.#handleModeChange,
-      onAddClick: this.#HandlePointAddClick,
       pointOptionsModel: this.#pointOptionsModel,
       destinationModel: this.#destinationModel,
       types: this.#types,
-      destinations: this.#destinations
+      destinations: this.#destinations,
+      newPointPresenter: this.#newPointPresenter
     });
     pointPresenter.init({point});
     this.#pointPresenters.set(point.id, pointPresenter);
@@ -152,6 +164,7 @@ export default class MainPresenter {
         this.#pointModel.updatePoint(updateType, update);
         break;
       case UserAction.ADD_POINT:
+        this.#newPointPresenter.setSaving();
         this.#pointModel.addPoint(updateType, update);
         break;
       case UserAction.DELETE_POINT:
@@ -233,7 +246,7 @@ export default class MainPresenter {
     }
   }
 
-  #HandlePointAddClick = () => {
+  #pointAddClickHandler = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
     if (this.#currentFilterType !== FilterType.EVERYTHING) {
       this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
@@ -242,6 +255,7 @@ export default class MainPresenter {
       this.#replaceSortComponent();
       this.#handleSortTypeChange(SortType.SORT_DAY);
     }
+    this.#newPointPresenter.init();
   };
 }
 

@@ -34,6 +34,7 @@ export default class PointFormEdit extends AbstractStatefulView {
   }
 
   get template() {
+    console.log(1);
     return formUtil.createPointEditTemplate({
       point: this._state,
       type: getTypeImage(this._state),

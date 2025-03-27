@@ -26,8 +26,6 @@ export default class PointFormAdd extends AbstractStatefulView {
     destinations,
     onFormSubmit,
     onCloseClick,
-    onEscKeyDawn,
-    onAddNewPointClick
   }) {
     super();
     this._setState(PointFormAdd.parsePointToState({type: 'flight', offers: [], basePrice: 0}));
@@ -36,13 +34,12 @@ export default class PointFormAdd extends AbstractStatefulView {
     this.#destinations = destinations;
     this.#handleFormSubmit = onFormSubmit;
     this.#handleFormClose = onCloseClick;
-    this.#handleEscKeyDown = onEscKeyDawn;
-    this.#handleAddNewPointClick = onAddNewPointClick;
     this.#offers = offers;
     this._restoreHandlers();
   }
 
   get template() {
+    console.log(2);
     return formUtil.createPointEditTemplate({
       point: this._state,
       type: getTypeImage(this._state),
@@ -101,7 +98,7 @@ export default class PointFormAdd extends AbstractStatefulView {
     this._setState({basePrice: this._state.totalPrice});
     const isValid = this.#pristine.validate();
     if (isValid) {
-      this.#handleAddNewPointClick(PointFormAdd.parseStateToPoint(this._state));
+      this.#handleFormSubmit(PointFormAdd.parseStateToPoint(this._state));
       this.#handleFormClose();
     }
   };

@@ -1,43 +1,48 @@
 import {Mode, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
 import PointFormAdd from '../view/point-form-add';
 import {render} from '../framework/render';
+import {remove} from '../framework/render';
 
 export default class NewPointPresenter {
   #pointListContainer = null;
-  #prevFavoriteStatus = null;
-  #pointFormEdit = null;
-  #pointView = null;
-  #point = null;
-  #mode = Mode.DEFAULT;
   #handleDataChange;
-  #handleModeChange;
   #pointOptionsModel;
   #destinationModel;
   #types;
-  #destinations;
-  #editButton;
   #pointFormAdd;
   #formAddMode = MODE_FORM_ADD.DEFAULT;
-  #handlePointAddClick;
+  #addButton;
 
-  constructor(pointListContainer,
-    onFavoritesChange,
-    onModeChange,
+  constructor({
+    pointListContainer,
     pointOptionsModel,
     destinationModel,
-    types,
-    destinations,
-    onAddClick) {
-    this.#editButton = document.querySelector('.trip-main__event-add-btn');
-    this.#editButton.addEventListener('click', this.#pointAddClickHandler);
+    handleDataChange,
+    addButton,
+    types
+  }) {
+    this.#pointListContainer = pointListContainer;
+    this.#pointOptionsModel = pointOptionsModel;
+    this.#destinationModel = destinationModel;
+    this.#handleDataChange = handleDataChange;
+    this.#addButton = addButton;
+    this.#types = types;
+
+  }
+
+  init() {
+    this.#formAddMode = MODE_FORM_ADD.OPEN;
     this.#pointFormAdd = new PointFormAdd({
       offers: this.#pointOptionsModel.getOptions(),
       types: this.#types,
-      destinations: this.#destinations,
+      destinations: this.#destinationModel.getDestinations(),
+      onFormSubmit: this.#handleAddSubmit,
       onCloseClick: this.#pointFormAddCloseHandler,
-      onAddNewPointClick: this.#handleAddSubmit
+      onAddNewPointClick: this.#handleAddSubmit,
     });
-    this.#handlePointAddClick = onAddClick;
+    render(this.#pointFormAdd, this.#pointListContainer, 'afterbegin');
+    document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
+    this.#addButton.disabled = true;
   }
 
   #handleAddSubmit = (point) => {
@@ -63,15 +68,21 @@ export default class NewPointPresenter {
     this.#pointFormAdd.reset();
     this.#pointListContainer.firstChild.remove();
     document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
-    this.#editButton.disabled = false;
+    this.#addButton.disabled = false;
     this.#formAddMode = MODE_FORM_ADD.DEFAULT;
   };
 
-  #pointAddClickHandler = () => {
-    this.#handlePointAddClick();
-    this.#formAddMode = MODE_FORM_ADD.OPEN;
-    render(this.#pointFormAdd, this.#pointListContainer, 'afterbegin');
-    document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
-    this.#editButton.disabled = true;
+  resetFormAddPoint = () => {
+    if (this.#formAddMode !== MODE_FORM_ADD.DEFAULT) {
+      this.#closeFormAddPoint();
+    }
   };
+
+  setSaving() {
+    this.#pointFormAdd.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
 }
+
