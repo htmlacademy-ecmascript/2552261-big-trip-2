@@ -39,7 +39,6 @@ export default class PointFormAdd extends AbstractStatefulView {
   }
 
   get template() {
-    console.log(2);
     return formUtil.createPointEditTemplate({
       point: this._state,
       type: getTypeImage(this._state),
@@ -95,11 +94,11 @@ export default class PointFormAdd extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
+    this._setState({initialPrice: this._state.basePrice});
     this._setState({basePrice: this._state.totalPrice});
     const isValid = this.#pristine.validate();
     if (isValid) {
       this.#handleFormSubmit(PointFormAdd.parseStateToPoint(this._state));
-      this.#handleFormClose();
     }
   };
 

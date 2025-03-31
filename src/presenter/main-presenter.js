@@ -9,7 +9,7 @@ import {FilterType, MODE_FORM_ADD, SORT_TYPES, SortType, UpdateType, UserAction}
 import {filter} from '../utils/filter';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
 import LoadingView from '../view/loading-view';
-import NewPointPresenter from "./new-point-presenter";
+import NewPointPresenter from './new-point-presenter';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
@@ -52,7 +52,8 @@ export default class MainPresenter {
       destinationModel: this.#destinationModel,
       handleDataChange: this.#handleViewAction,
       addButton: this.#addButton,
-      types: this.#types});
+      types: this.#types
+    });
     pointModel.addObserver(this.#handleModelEvent);
     filterModel.addObserver(this.#handleModelEvent);
   }
@@ -157,19 +158,32 @@ export default class MainPresenter {
     this.#sortComponent = newSortComponent;
   }
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#pointPresenters.get(update.id).setSaving();
-        this.#pointModel.updatePoint(updateType, update);
+        try {
+          await this.#pointModel.updatePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
       case UserAction.ADD_POINT:
         this.#newPointPresenter.setSaving();
-        this.#pointModel.addPoint(updateType, update);
+        try {
+          await this.#pointModel.addPoint(updateType, update);
+          this.#newPointPresenter.destroy();
+        } catch (err) {
+          this.#newPointPresenter.setAborting();
+        }
         break;
       case UserAction.DELETE_POINT:
         this.#pointPresenters.get(update.id).setDeleting();
-        this.#pointModel.deletePoint(updateType, update);
+        try {
+          await this.#pointModel.deletePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
     }
   };

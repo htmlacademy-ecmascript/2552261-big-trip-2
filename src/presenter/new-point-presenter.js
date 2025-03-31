@@ -1,7 +1,6 @@
-import {Mode, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
+import {MODE_FORM_ADD, UpdateType, UserAction} from '../const';
 import PointFormAdd from '../view/point-form-add';
-import {render} from '../framework/render';
-import {remove} from '../framework/render';
+import {remove, render} from '../framework/render';
 
 export default class NewPointPresenter {
   #pointListContainer = null;
@@ -45,6 +44,11 @@ export default class NewPointPresenter {
     this.#addButton.disabled = true;
   }
 
+  destroy() {
+    remove(this.#pointFormAdd);
+    this.#addButton.disabled = false;
+  }
+
   #handleAddSubmit = (point) => {
     this.#handleDataChange(
       UserAction.ADD_POINT,
@@ -83,6 +87,18 @@ export default class NewPointPresenter {
       isDisabled: true,
       isSaving: true,
     });
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this.#pointFormAdd.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        basePrice: this.#pointFormAdd._state.initialPrice
+      });
+    };
+
+    this.#pointFormAdd.shake(resetFormState);
   }
 }
 
