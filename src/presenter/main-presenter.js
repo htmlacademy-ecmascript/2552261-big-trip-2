@@ -101,7 +101,7 @@ export default class MainPresenter {
     this.#pointPresenters.set(point.id, pointPresenter);
   }
 
-  #renderPoints({filterType = FilterType.EVERYTHING, points, mainContainer}) {
+  #renderPoints({filterType = this.#filterModel.filter, points, mainContainer}) {
     if (points.length > 0) {
       points.forEach((point) => this.#renderPoint({point}));
       render(this.#pointListComponent, mainContainer);
@@ -204,8 +204,8 @@ export default class MainPresenter {
         this.#clearBoard();
         this.#currentBoardPoints = this.#pointModel.getPoints();
         this.#clearFilterMessage();
-        this.#replaceSortComponent();
-        this.#currentSortType = SortType.SORT_DAY;
+        // this.#replaceSortComponent(); //TODO delete
+        // this.#currentSortType = SortType.SORT_DAY; //TODO delete
         this.#renderPoints({
           points: this.points,
           types: this.#types,
@@ -217,6 +217,7 @@ export default class MainPresenter {
         this.#clearBoard();
         this.#clearFilterMessage();
         this.#currentFilterType = this.#filterModel.filter;
+        this.#currentSortType = SortType.SORT_DAY;
         this.#replaceSortComponent();
         this.#renderPoints({
           filterType: this.#currentFilterType,

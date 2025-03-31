@@ -46,7 +46,7 @@ ${createEventTypeItem(types, point)}
 
                   <div class="event__field-group  event__field-group--destination">
                     <label class="event__label  event__type-output" for="event-destination-1">
-                      ${typeName}
+${typeName}
                     </label>
                     <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination?.name ? he.encode(destination.name) : ''}" list="destination-list-1" ${isDisabled ? 'disabled' : ''}>
                     <datalist id="destination-list-1">
@@ -80,24 +80,35 @@ ${createEventTypeItem(types, point)}
 }
 
 function createEventDestinationTemplate(destination) {
-  const {description, pictures} = destination ? destination : {};
+  const {description, pictures} = destination ? destination : [];
   const currentPictures = pictures ? pictures : [];
   const currentDescription = description ? description : '';
 
-  return `<section class="event__section  event__section--destination" ${!destination || (pictures.length === 0 && description === '') ? 'hidden' : ''}>
+  if((currentDescription !== '' || currentPictures.length > 0)) {
+    return `<section class="event__section  event__section--destination"}>
                         <h3 class="event__section-title  event__section-title--destination">Destination</h3>
                         <p class="event__destination-description">${currentDescription}</p>
 
-                       <div class="event__photos-container">
-                         <div class="event__photos-tape">
-                       ${createEventPhotoTemplate(currentPictures)}
-                          </div>
-                       </div>
+                    ${createPhotoContainer(currentPictures)}
                      </section>`;
+  } else {
+    return '';
+  }
+
 }
 
 function createEventPhotoTemplate(pictures = []) {
   return pictures.map(({src}) => `<img class="event__photo" src="${src}" alt="Event photo">`).join('');
+}
+
+function createPhotoContainer(currentPictures) {
+  if(currentPictures.length > 0) {
+    return `    <div class="event__photos-container">
+                         <div class="event__photos-tape">
+                       ${createEventPhotoTemplate(currentPictures)}
+                          </div>
+                       </div>`;
+  }
 }
 
 function createOffersItemTemplate(offers, point, isDisabled) {
@@ -113,13 +124,14 @@ function createOffersItemTemplate(offers, point, isDisabled) {
 
 function createPointOffersTemplate(offers, point, isDisabled) {
   const currentOffers = offers;
-
-  return `<section class="event__section  event__section--offers" ${currentOffers.length > 0 ? '' : 'hidden'}>
+  if(currentOffers.length > 0) {
+    return `<section class="event__section  event__section--offers" }>
                        <h3 class="event__section-title  event__section-title--offers">Offers</h3>
                        <div class="event__available-offers">
                         ${createOffersItemTemplate(currentOffers, point, isDisabled)}
                         </div>
                       </section>`;
+  }
 }
 
 function createPointEditTemplate({point, type, offers, destination, types, destinations, formType, isSaving, isDeleting, isDisabled}) {
@@ -127,8 +139,8 @@ function createPointEditTemplate({point, type, offers, destination, types, desti
 <form class="event event--edit" action="#" method="post">
 ${createEventHeaderTemplate({point, type, types, destination, destinations, formType, isSaving, isDeleting, isDisabled})}
 <section class="event__details">
-${createPointOffersTemplate(offers, point, isDisabled)}
-${createEventDestinationTemplate(destination)}
+${offers.length > 0 ? createPointOffersTemplate(offers, point, isDisabled) : ''}
+${destination ? createEventDestinationTemplate(destination) : ''}
 </section>
 </form>
 </li>`;
@@ -188,7 +200,7 @@ const setDatepicker = ({
 }) => flatpickr(inputElement.querySelector(`#${element}`),
   {
     enableTime: true,
-    minDate: 'today',
+    // minDate: 'today',
     'time_24hr': true,
     dateFormat: 'd/m/y H:i',
     onChange: dueDateChangeHandler,

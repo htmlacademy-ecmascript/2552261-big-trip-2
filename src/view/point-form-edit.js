@@ -64,7 +64,7 @@ export default class PointFormEdit extends AbstractStatefulView {
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formClosetHandler);
     this.element.querySelector('.event__type-group').addEventListener('change', this.#pointTypeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('input', this.#pointDestinationChangeHandler);
-    this.element.querySelector('.event__available-offers').addEventListener('change', this.#pointOffersListChangeHandler);
+    this.element.querySelector('.event__available-offers')?.addEventListener('change', this.#pointOffersListChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#pointPriceChangeHandler);
     this.element.querySelector('.event--edit').addEventListener('submit', this.#formSubmitHandler);
@@ -104,7 +104,7 @@ export default class PointFormEdit extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this._setState({initialPrice: this._state.basePrice});
-    this._setState({basePrice: this._state.totalPrice});
+    // this._setState({basePrice: this._state.totalPrice});
     if (this._state.totalPrice < 0) {
       this.element.querySelector('.event__input--price').value = this._state.totalPrice;
     }

@@ -55,6 +55,7 @@ export default class NewPointPresenter {
       UpdateType.MINOR,
       point,
     );
+    this.#formAddMode = MODE_FORM_ADD.DEFAULT;
   };
 
   #pointFormAddCloseHandler = () => {

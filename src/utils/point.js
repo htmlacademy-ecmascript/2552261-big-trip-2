@@ -2,8 +2,10 @@ import {getDate} from './util';
 import dayjs from 'dayjs';
 
 function sortByDay(pointA, pointB) {
-  return getDate(pointA.dateFrom) - getDate(pointB.dateFrom);
+  return dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
 }
+  // return getDate(pointA.dateFrom) - getDate(pointB.dateFrom);
+
 
 function sortByPrice(pointA, pointB) {
   return Math.sign(pointB.basePrice - pointA.basePrice);
