@@ -50,6 +50,7 @@ export default class MainPresenter {
       pointListContainer: this.#pointListComponent.element,
       pointOptionsModel: this.#pointOptionsModel,
       destinationModel: this.#destinationModel,
+      renderEmptyList: this.#renderEmptyList,
       handleDataChange: this.#handleViewAction,
       addButton: this.#addButton,
       types: this.#types
@@ -102,13 +103,18 @@ export default class MainPresenter {
   }
 
   #renderPoints({filterType = this.#filterModel.filter, points, mainContainer}) {
+    render(this.#pointListComponent, mainContainer);
     if (points.length > 0) {
       points.forEach((point) => this.#renderPoint({point}));
-      render(this.#pointListComponent, mainContainer);
     } else {
-      render(new EmptyListView(filterType), this.#container.querySelector('.trip-events'));
+      this.#renderEmptyList(filterType);
     }
   }
+
+  #renderEmptyList = (filterType)=> {
+    this.#emptyList = new EmptyListView(filterType);
+    render(this.#emptyList, this.#container.querySelector('.trip-events'));
+  };
 
   #renderPointBoard({mainContainer, headerContainer}) {
     if (this.#isLoading) {
@@ -129,12 +135,12 @@ export default class MainPresenter {
       this.#pointPresenters.forEach((presenter) => presenter.destroy());
       this.#pointPresenters.clear();
     }
+    this.#clearFilterMessage();
   }
 
   #clearFilterMessage() {
     if (document.querySelector('.trip-events__msg')) {
-      document.querySelector('.trip-events__msg').remove();
-      this.#emptyList.removeElement();
+      remove(this.#emptyList);
     }
   }
 
@@ -162,25 +168,31 @@ export default class MainPresenter {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#pointPresenters.get(update.id).setSaving();
+        this.#addButton.disabled = true;
         try {
           await this.#pointModel.updatePoint(updateType, update);
+          this.#addButton.disabled = false;
         } catch (err) {
           this.#pointPresenters.get(update.id).setAborting();
         }
         break;
       case UserAction.ADD_POINT:
         this.#newPointPresenter.setSaving();
+        this.#addButton.disabled = true;
         try {
           await this.#pointModel.addPoint(updateType, update);
           this.#newPointPresenter.destroy();
+          this.#addButton.disabled = false;
         } catch (err) {
           this.#newPointPresenter.setAborting();
         }
         break;
       case UserAction.DELETE_POINT:
         this.#pointPresenters.get(update.id).setDeleting();
+        this.#addButton.disabled = true;
         try {
           await this.#pointModel.deletePoint(updateType, update);
+          this.#addButton.disabled = false;
         } catch (err) {
           this.#pointPresenters.get(update.id).setAborting();
         }
@@ -261,7 +273,6 @@ export default class MainPresenter {
   resetView() {
     if (this.#formAddMode === MODE_FORM_ADD.OPEN) {
       this.#formAddMode = MODE_FORM_ADD.DEFAULT;
-      this.#formAddMode = MODE_FORM_ADD.DEFAULT;
     }
   }
 
@@ -274,6 +285,7 @@ export default class MainPresenter {
       this.#replaceSortComponent();
       this.#handleSortTypeChange(SortType.SORT_DAY);
     }
+    this.#clearFilterMessage();
     this.#newPointPresenter.init();
   };
 }

@@ -1,10 +1,11 @@
-import {MODE_FORM_ADD, UpdateType, UserAction} from '../const';
+import {FilterType, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
 import PointFormAdd from '../view/point-form-add';
 import {remove, render} from '../framework/render';
 
 export default class NewPointPresenter {
   #pointListContainer = null;
   #handleDataChange;
+  #renderEmptyList;
   #pointOptionsModel;
   #destinationModel;
   #types;
@@ -17,6 +18,7 @@ export default class NewPointPresenter {
     pointOptionsModel,
     destinationModel,
     handleDataChange,
+    renderEmptyList,
     addButton,
     types
   }) {
@@ -24,6 +26,7 @@ export default class NewPointPresenter {
     this.#pointOptionsModel = pointOptionsModel;
     this.#destinationModel = destinationModel;
     this.#handleDataChange = handleDataChange;
+    this.#renderEmptyList = renderEmptyList;
     this.#addButton = addButton;
     this.#types = types;
 
@@ -75,6 +78,9 @@ export default class NewPointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
     this.#addButton.disabled = false;
     this.#formAddMode = MODE_FORM_ADD.DEFAULT;
+    if(this.#pointListContainer.children.length === 0) {
+      this.#renderEmptyList(FilterType.EVERYTHING);
+    }
   };
 
   resetFormAddPoint = () => {

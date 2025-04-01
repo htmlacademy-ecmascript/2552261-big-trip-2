@@ -72,10 +72,9 @@ ${typeName}
 
                   <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
                   <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${createButtonLabel(formType, isDeleting)}</button>
-                  ${formType === 'Edit' ? '<button class="event__rollup-btn" type="button">' : ''
+                  ${formType === 'Edit' ? `<button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}><span class="visually-hidden">Open event</span></button>` : ''
 }
-                    <span class="visually-hidden">Open event</span>
-                  </button>
+
                 </header>`;
 }
 
@@ -108,6 +107,8 @@ function createPhotoContainer(currentPictures) {
                        ${createEventPhotoTemplate(currentPictures)}
                           </div>
                        </div>`;
+  } else {
+    return '';
   }
 }
 
@@ -216,24 +217,21 @@ const dueDateChange = ({
   datepickerFrom,
   datepickerTo
 }) => {
-  const isValidStartDate = pristine.validate(domElement.querySelector('#event-start-time-1'));
-  const isValidEndDate = pristine.validate(domElement.querySelector('#event-end-time-1'));
+  // const isValidStartDate = pristine.validate(domElement.querySelector('#event-start-time-1'));
+  // const isValidEndDate = pristine.validate(domElement.querySelector('#event-end-time-1'));
 
   switch (event.input.name) {
     case 'event-start-time':
-      if (isValidStartDate) {
-        setState({dateFrom: dayjs.utc(userDate).toISOString()});
-        datepickerTo.set('minDate', new Date(userDate));
-      }
+
+      setState({dateFrom: dayjs.utc(userDate).toISOString()});
+      datepickerTo.set('minDate', new Date(userDate));
+
       break;
     case 'event-end-time':
-      if (isValidEndDate) {
-        setState({dateTo: dayjs.utc(userDate).toISOString()});
-        datepickerFrom.set('maxDate', new Date(userDate));
-      } else {
-        setState({dateTo: ''});
-        domElement.querySelector('#event-end-time-1').value = '';
-      }
+
+      setState({dateTo: dayjs.utc(userDate).toISOString()});
+      datepickerFrom.set('maxDate', new Date(userDate));
+
       break;
   }
 };

@@ -152,7 +152,7 @@ export default class PointPresenter {
 
   setAborting() {
     if (this.#mode === Mode.DEFAULT) {
-      this.#pointListContainer.shake();
+      this.#pointView.shake();
       return;
     }
 

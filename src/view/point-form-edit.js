@@ -104,14 +104,10 @@ export default class PointFormEdit extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this._setState({initialPrice: this._state.basePrice});
-    // this._setState({basePrice: this._state.totalPrice});
     if (this._state.totalPrice < 0) {
       this.element.querySelector('.event__input--price').value = this._state.totalPrice;
     }
-    const isValid = this.#pristine.validate();
-    if (isValid) {
-      this.#handleFormSubmit(PointFormEdit.parseStateToPoint(this._state));
-    }
+    this.#handleFormSubmit(PointFormEdit.parseStateToPoint(this._state));
   };
 
   #formClosetHandler = (evt) => {

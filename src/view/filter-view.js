@@ -1,10 +1,11 @@
 import AbstractView from '../framework/view/abstract-view';
 import {filter} from '../utils/filter';
+import {FilterType} from '../const';
 
 function createListFilterItemTemplate({filterType, currentFilterType, points}) {
   const pointsFilterLength = Object.entries(filter).filter(([type,]) => type === filterType.toLowerCase()).map(([, filterPoints]) => filterPoints(points).length);
   return `<div class="trip-filters__filter">
-                  <input id="filter-${filterType.toLowerCase()}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${filterType.toLowerCase()}" ${filterType.toLowerCase() === currentFilterType.toLowerCase() ? 'checked' : ''} ${pointsFilterLength > 0 ? '' : 'disabled'}>
+                  <input id="filter-${filterType.toLowerCase()}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${filterType.toLowerCase()}" ${filterType.toLowerCase() === currentFilterType.toLowerCase() ? 'checked' : ''} ${filterType.toLowerCase() === FilterType.EVERYTHING || pointsFilterLength > 0 ? '' : 'disabled'}>
                   <label class="trip-filters__filter-label" for="filter-${filterType.toLowerCase()}">${filterType}</label>
                 </div>`;
 }
@@ -27,8 +28,8 @@ export default class FilterView extends AbstractView {
   #points;
 
   constructor({
-                filters, currentFilterType, onFilterTypeChange, points
-              }) {
+    filters, currentFilterType, onFilterTypeChange, points
+  }) {
     super();
     this.#handleFilterChange = onFilterTypeChange;
     this.#currentFilterType = currentFilterType;
