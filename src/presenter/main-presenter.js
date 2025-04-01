@@ -204,8 +204,6 @@ export default class MainPresenter {
         this.#clearBoard();
         this.#currentBoardPoints = this.#pointModel.getPoints();
         this.#clearFilterMessage();
-        // this.#replaceSortComponent(); //TODO delete
-        // this.#currentSortType = SortType.SORT_DAY; //TODO delete
         this.#renderPoints({
           points: this.points,
           types: this.#types,
@@ -234,6 +232,12 @@ export default class MainPresenter {
         break;
     }
   };
+
+  clearLoadingMessage() {
+    this.#isLoading = false;
+    remove(this.#loadingComponent);
+    render(new EmptyListView(), this.#container.querySelector('.trip-events'));
+  }
 
   #handleModeChange = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());

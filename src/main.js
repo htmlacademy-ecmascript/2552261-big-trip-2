@@ -31,7 +31,7 @@ Promise.all([destinationsModel.init(), offersModel.init()]).then(() => {
   });
   filterPresenter.init();
   mainPresenter.init();
-  pointsModel.init();
+  pointsModel.init().catch(() => mainPresenter.clearLoadingMessage());
 });
 
 
