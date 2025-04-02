@@ -10,6 +10,12 @@ import {filter} from '../utils/filter';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
 import LoadingView from '../view/loading-view';
 import NewPointPresenter from './new-point-presenter';
+import UiBlocker from '../framework/ui-blocker/ui-blocker';
+
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
@@ -17,7 +23,6 @@ export default class MainPresenter {
   #pointPresenters = new Map();
   #newPointPresenter;
   #emptyList = new EmptyListView();
-  #formAddMode = MODE_FORM_ADD.DEFAULT;
   #container;
   #mainContainer;
   #headerContainer;
@@ -33,6 +38,10 @@ export default class MainPresenter {
   #filterModel;
   #isLoading = true;
   #addButton;
+  #uiBlocker = new UiBlocker({
+    lowerLimit: TimeLimit.LOWER_LIMIT,
+    upperLimit: TimeLimit.UPPER_LIMIT
+  });
 
   constructor({container, pointModel, filterModel, pointOptionsModel, destinationModel}) {
     this.#container = container;
@@ -111,7 +120,7 @@ export default class MainPresenter {
     }
   }
 
-  #renderEmptyList = (filterType)=> {
+  #renderEmptyList = (filterType) => {
     this.#emptyList = new EmptyListView(filterType);
     render(this.#emptyList, this.#container.querySelector('.trip-events'));
   };
@@ -165,39 +174,35 @@ export default class MainPresenter {
   }
 
   #handleViewAction = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
     switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#pointPresenters.get(update.id).setSaving();
-        this.#addButton.disabled = true;
         try {
           await this.#pointModel.updatePoint(updateType, update);
-          this.#addButton.disabled = false;
         } catch (err) {
           this.#pointPresenters.get(update.id).setAborting();
         }
         break;
       case UserAction.ADD_POINT:
         this.#newPointPresenter.setSaving();
-        this.#addButton.disabled = true;
         try {
           await this.#pointModel.addPoint(updateType, update);
           this.#newPointPresenter.destroy();
-          this.#addButton.disabled = false;
         } catch (err) {
           this.#newPointPresenter.setAborting();
         }
         break;
       case UserAction.DELETE_POINT:
         this.#pointPresenters.get(update.id).setDeleting();
-        this.#addButton.disabled = true;
         try {
           await this.#pointModel.deletePoint(updateType, update);
-          this.#addButton.disabled = false;
         } catch (err) {
           this.#pointPresenters.get(update.id).setAborting();
         }
         break;
     }
+    this.#uiBlocker.unblock();
   };
 
   #handleModelEvent = (updateType, data) => {
@@ -270,14 +275,20 @@ export default class MainPresenter {
     });
   };
 
-  resetView() {
-    if (this.#formAddMode === MODE_FORM_ADD.OPEN) {
-      this.#formAddMode = MODE_FORM_ADD.DEFAULT;
-    }
-  }
+  // resetView() {
+  //   if (this.#formAddMode === MODE_FORM_ADD.OPEN) {
+  //     this.#formAddMode = MODE_FORM_ADD.DEFAULT;
+  //   }
+  // }
 
   #pointAddClickHandler = () => {
-    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+    this.#clearBoard();
+    this.#renderPoints({
+      points: this.points,
+      types: this.#types,
+      destinations: this.#destinations,
+      mainContainer: this.#mainContainer
+    });
     if (this.#currentFilterType !== FilterType.EVERYTHING) {
       this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     }

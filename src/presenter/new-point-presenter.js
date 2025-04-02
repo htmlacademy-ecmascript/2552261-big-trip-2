@@ -74,7 +74,7 @@ export default class NewPointPresenter {
 
   #closeFormAddPoint = () => {
     this.#pointFormAdd.reset();
-    this.#pointListContainer.firstChild.remove();
+    remove(this.#pointFormAdd);
     document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
     this.#addButton.disabled = false;
     this.#formAddMode = MODE_FORM_ADD.DEFAULT;
@@ -101,10 +101,10 @@ export default class NewPointPresenter {
       this.#pointFormAdd.updateElement({
         isDisabled: false,
         isSaving: false,
-        basePrice: this.#pointFormAdd._state.initialPrice
+        basePrice: this.#pointFormAdd._state.initialPrice,
       });
     };
-
+    this.#formAddMode = MODE_FORM_ADD.OPEN;
     this.#pointFormAdd.shake(resetFormState);
   }
 }

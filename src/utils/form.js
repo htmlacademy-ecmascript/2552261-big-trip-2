@@ -71,8 +71,8 @@ ${typeName}
                   </div>
 
                   <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
-                  <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${createButtonLabel(formType, isDeleting)}</button>
-                  ${formType === 'Edit' ? `<button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}><span class="visually-hidden">Open event</span></button>` : ''
+                  <button class="event__reset-btn" type="reset" >${createButtonLabel(formType, isDeleting)}</button>
+                  ${formType === 'Edit' ? '<button class="event__rollup-btn" type="button" ><span class="visually-hidden">Open event</span></button>' : ''
 }
 
                 </header>`;
@@ -150,12 +150,13 @@ ${destination ? createEventDestinationTemplate(destination) : ''}
 const changeDestination = ({evt, pristine, destinations, state, setState, updateElement}) => {
   evt.preventDefault();
   const isValid = pristine.validate(evt.target);
-
   if (isValid || evt.target.value === '') {
     const newDestination = destinations.find((destination) => destination.name.toLowerCase() === evt.target.value.toLowerCase());
     if (newDestination) {
       setState({destination: changeFirstLetter(newDestination.name), totalPrice: state.basePrice});
       updateElement({destination: newDestination?.id ? newDestination.id : ''});
+    } else {
+      setState({destination: ''});
     }
   }
 };
@@ -219,20 +220,21 @@ const dueDateChange = ({
 }) => {
   // const isValidStartDate = pristine.validate(domElement.querySelector('#event-start-time-1'));
   // const isValidEndDate = pristine.validate(domElement.querySelector('#event-end-time-1'));
+  if(userDate[0] !== undefined) {
+    switch (event.input.name) {
+      case 'event-start-time':
 
-  switch (event.input.name) {
-    case 'event-start-time':
+        setState({dateFrom: dayjs.utc(userDate).toISOString()});
+        datepickerTo.set('minDate', new Date(userDate));
 
-      setState({dateFrom: dayjs.utc(userDate).toISOString()});
-      datepickerTo.set('minDate', new Date(userDate));
+        break;
+      case 'event-end-time':
 
-      break;
-    case 'event-end-time':
+        setState({dateTo: dayjs.utc(userDate).toISOString()});
+        datepickerFrom.set('maxDate', new Date(userDate));
 
-      setState({dateTo: dayjs.utc(userDate).toISOString()});
-      datepickerFrom.set('maxDate', new Date(userDate));
-
-      break;
+        break;
+    }
   }
 };
 

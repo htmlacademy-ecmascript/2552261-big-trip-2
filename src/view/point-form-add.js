@@ -93,9 +93,7 @@ export default class PointFormAdd extends AbstractStatefulView {
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
     this._setState({initialPrice: this._state.basePrice});
-
     this.#handleFormSubmit(PointFormAdd.parseStateToPoint(this._state));
-
   };
 
   #formClosetHandler = (evt) => {
