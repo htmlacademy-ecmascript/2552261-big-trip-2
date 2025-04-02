@@ -1,7 +1,7 @@
 import PointFormEdit from '../view/point-form-edit';
 import PointView from '../view/point-view';
 import {remove, render, replace} from '../framework/render';
-import {Mode, UpdateType, UserAction} from '../const';
+import {FORM_TYPE, Mode, UpdateType, UserAction} from '../const';
 import {getTypeImage} from '../utils/point';
 
 export default class PointPresenter {
@@ -67,7 +67,8 @@ export default class PointPresenter {
       destinations: this.#destinations,
       onCloseClick: this.#handleCloseClick,
       onFormSubmit: this.#handleEditSubmit,
-      onDeleteClick: this.#handleDeleteClick
+      onDeleteClick: this.#handleDeleteClick,
+      formType: FORM_TYPE.EDIT
     });
 
     if (prevPointView === null || prevPointEdit === null) {

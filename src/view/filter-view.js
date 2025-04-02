@@ -1,6 +1,5 @@
 import AbstractView from '../framework/view/abstract-view';
 import {filter} from '../utils/filter';
-import {FilterType} from '../const';
 
 function createListFilterItemTemplate({filterType, currentFilterType, points}) {
   const pointsFilterLength = Object.entries(filter).filter(([type,]) => type === filterType.toLowerCase()).map(([, filterPoints]) => filterPoints(points).length);

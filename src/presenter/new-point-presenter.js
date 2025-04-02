@@ -1,6 +1,7 @@
 import {FilterType, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
-import PointFormAdd from '../view/point-form-add';
+import PointFormEdit from '../view/point-form-edit';
 import {remove, render} from '../framework/render';
+import {FORM_TYPE} from '../const';
 
 export default class NewPointPresenter {
   #pointListContainer = null;
@@ -34,13 +35,13 @@ export default class NewPointPresenter {
 
   init() {
     this.#formAddMode = MODE_FORM_ADD.OPEN;
-    this.#pointFormAdd = new PointFormAdd({
+    this.#pointFormAdd = new PointFormEdit({
       offers: this.#pointOptionsModel.getOptions(),
       types: this.#types,
       destinations: this.#destinationModel.getDestinations(),
       onFormSubmit: this.#handleAddSubmit,
       onCloseClick: this.#pointFormAddCloseHandler,
-      onAddNewPointClick: this.#handleAddSubmit,
+      formType: FORM_TYPE.ADD
     });
     render(this.#pointFormAdd, this.#pointListContainer, 'afterbegin');
     document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
