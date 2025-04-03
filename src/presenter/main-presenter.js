@@ -1,10 +1,9 @@
 import PointPresenter from './point-presenter';
 import PointListView from '../view/point-list-view';
 import EmptyListView from '../view/empty-points-list-view';
-import TripInfoView from '../view/trip-info-view';
 import SortView from '../view/sort-view';
 import {updateItem} from '../utils/common';
-import {remove, render, RenderPosition, replace} from '../framework/render';
+import {remove, render, replace} from '../framework/render';
 import {FilterType, SORT_TYPES, SortType, UpdateType, UserAction} from '../const';
 import {filter} from '../utils/filter';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
@@ -42,7 +41,7 @@ export default class MainPresenter {
     upperLimit: TimeLimit.UPPER_LIMIT
   });
 
-  constructor({container, pointModel, filterModel, pointOptionsModel, destinationModel}) {
+  constructor({container,addButton, pointModel, filterModel, pointOptionsModel, destinationModel}) {
     this.#container = container;
     this.#pointModel = pointModel;
     this.#pointOptionsModel = pointOptionsModel;
@@ -51,7 +50,7 @@ export default class MainPresenter {
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
     this.#filterModel = filterModel;
-    this.#addButton = document.querySelector('.trip-main__event-add-btn');
+    this.#addButton = addButton;
     this.#addButton.addEventListener('click', this.#pointAddClickHandler);
     this.#newPointPresenter = new NewPointPresenter({
       pointListContainer: this.#pointListComponent.element,
@@ -127,7 +126,6 @@ export default class MainPresenter {
       this.#renderLoading();
       return;
     }
-    // render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
     this.#renderSort();
     this.#renderPoints({points: this.points, mainContainer});
   }
@@ -271,12 +269,6 @@ export default class MainPresenter {
       mainContainer: this.#mainContainer
     });
   };
-
-  // resetView() {
-  //   if (this.#formAddMode === MODE_FORM_ADD.OPEN) {
-  //     this.#formAddMode = MODE_FORM_ADD.DEFAULT;
-  //   }
-  // }
 
   #pointAddClickHandler = () => {
     this.#clearBoard();

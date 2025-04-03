@@ -250,7 +250,7 @@ export default class PointFormEdit extends AbstractStatefulView {
     if (isValid || evt.target.value === '') {
       const newDestination = this.#destinations.find((destination) => destination.name.toLowerCase() === evt.target.value.toLowerCase());
       if (newDestination) {
-        this._setState({destination: changeFirstLetter(newDestination.name), totalPrice: this._state.basePrice});
+        this._setState({destination: changeFirstLetter(newDestination.name)});
         this.updateElement({destination: newDestination?.id ? newDestination.id : ''});
       } else {
         this._setState({destination: ''});
@@ -261,9 +261,9 @@ export default class PointFormEdit extends AbstractStatefulView {
   #pointPriceChangeHandler = (evt) => {
     const isValid = this.#pristine.validate(evt.target);
     if (isValid) {
-      this._setState({basePrice: evt.target.value});
+      this._setState({basePrice: Number(evt.target.value)});
     } else {
-      this._setState({basePrice: 0});
+      this._setState({basePrice: Number(0)});
     }
   };
 
@@ -291,7 +291,7 @@ export default class PointFormEdit extends AbstractStatefulView {
   }) => flatpickr(inputElement.querySelector(`#${element}`),
     {
       enableTime: true,
-      // minDate: 'today',
+      minDate: 'today',
       'time_24hr': true,
       dateFormat: 'd/m/y H:i',
       onChange: dueDateChangeHandler,
@@ -303,11 +303,11 @@ export default class PointFormEdit extends AbstractStatefulView {
       switch (event.input.name) {
         case 'event-start-time':
           this._setState({dateFrom: dayjs.utc(userDate).toISOString()});
-          this.#datepickerFrom.set('maxDate', new Date(userDate));
+          this.#datepickerTo.set('minDate', new Date(userDate));
           break;
         case 'event-end-time':
           this._setState({dateTo: dayjs.utc(userDate).toISOString()});
-          this.#datepickerTo.set('minDate', new Date(userDate));
+          this.#datepickerFrom.set('maxDate', new Date(userDate));
           break;
       }
     }
@@ -315,7 +315,7 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #getOffersByType({type, offers}) {
     return offers.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
-  }
+  } //TODO
 
   #getDestinationById({id, destinations}) {
     return destinations.find((obj) => obj.id.localeCompare(id) === 0);
