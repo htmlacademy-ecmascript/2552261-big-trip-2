@@ -25,7 +25,6 @@ export default class MainPresenter {
   #emptyList = new EmptyListView();
   #container;
   #mainContainer;
-  #headerContainer;
   #pointModel;
   #pointOptionsModel;
   #destinationModel;
@@ -49,7 +48,6 @@ export default class MainPresenter {
     this.#pointOptionsModel = pointOptionsModel;
     this.#destinationModel = destinationModel;
     this.#mainContainer = this.#container.querySelector('.trip-events');
-    this.#headerContainer = this.#container.querySelector('.trip-main');
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
     this.#filterModel = filterModel;
@@ -74,7 +72,6 @@ export default class MainPresenter {
       types: this.#types,
       destinations: this.#destinations,
       mainContainer: this.#mainContainer,
-      headerContainer: this.#headerContainer
     });
   }
 
@@ -125,12 +122,12 @@ export default class MainPresenter {
     render(this.#emptyList, this.#container.querySelector('.trip-events'));
   };
 
-  #renderPointBoard({mainContainer, headerContainer}) {
+  #renderPointBoard({mainContainer}) {
     if (this.#isLoading) {
       this.#renderLoading();
       return;
     }
-    render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
+    // render(new TripInfoView(), headerContainer, RenderPosition.AFTERBEGIN);
     this.#renderSort();
     this.#renderPoints({points: this.points, mainContainer});
   }
@@ -245,7 +242,7 @@ export default class MainPresenter {
       case UpdateType.INIT:
         this.#isLoading = false;
         remove(this.#loadingComponent);
-        this.#renderPointBoard({mainContainer: this.#mainContainer, headerContainer: this.#headerContainer});
+        this.#renderPointBoard({mainContainer: this.#mainContainer});
         break;
     }
   };
