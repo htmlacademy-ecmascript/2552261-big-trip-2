@@ -1,9 +1,8 @@
 import PointFormEdit from '../view/point-form-edit';
 import PointView from '../view/point-view';
 import {remove, render, replace} from '../framework/render';
-import {Mode, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
+import {Mode, UpdateType, UserAction} from '../const';
 import {getTypeImage} from '../utils/point';
-import PointFormAdd from '../view/point-form-add';
 
 export default class PointPresenter {
 
@@ -19,10 +18,7 @@ export default class PointPresenter {
   #destinationModel;
   #types;
   #destinations;
-  static #editButton;
-  static #pointFormAdd;
-  static #formAddMode = MODE_FORM_ADD.DEFAULT;
-  static #handlePointAddClick;
+  #newPointPresenter;
 
   constructor({
     pointListContainer,
@@ -30,10 +26,11 @@ export default class PointPresenter {
     onModeChange,
     pointOptionsModel,
     destinationModel,
+    newPointPresenter,
     types,
     destinations,
-    onAddClick
   }) {
+    this.#newPointPresenter = newPointPresenter;
     this.#pointListContainer = pointListContainer;
     this.#handleDataChange = onFavoritesChange;
     this.#handleModeChange = onModeChange;
@@ -41,18 +38,6 @@ export default class PointPresenter {
     this.#destinationModel = destinationModel;
     this.#types = types;
     this.#destinations = destinations;
-    if (!PointPresenter.#editButton && !PointPresenter.#pointFormAdd) {
-      PointPresenter.#editButton = document.querySelector('.trip-main__event-add-btn');
-      PointPresenter.#editButton.addEventListener('click', this.#pointAddClickHandler);
-      PointPresenter.#pointFormAdd = new PointFormAdd({
-        offers: this.#pointOptionsModel.getOptions(),
-        types: this.#types,
-        destinations: this.#destinations,
-        onCloseClick: this.#pointFormAddCloseHandler,
-        onAddNewPointClick: this.#handleAddSubmit
-      });
-      PointPresenter.#handlePointAddClick = onAddClick;
-    }
   }
 
   init({point}) {
@@ -110,12 +95,6 @@ export default class PointPresenter {
     this.#mode = Mode.DEFAULT;
   }
 
-  #resetFormAddPoint = () => {
-    if (PointPresenter.#formAddMode !== MODE_FORM_ADD.DEFAULT) {
-      this.#closeFormAddPoint();
-    }
-  };
-
   #escKeyDownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
@@ -137,7 +116,7 @@ export default class PointPresenter {
   }
 
   #handleEditClick = () => {
-    this.#resetFormAddPoint();
+    this.#newPointPresenter.resetFormAddPoint();
     this.#replacePointToForm();
   };
 
@@ -171,38 +150,39 @@ export default class PointPresenter {
     );
   };
 
-  #handleAddSubmit = (point) => {
-    this.#handleDataChange(
-      UserAction.ADD_POINT,
-      UpdateType.MINOR,
-      point,
-    );
-  };
-
-  #pointFormAddCloseHandler = () => {
-    this.#closeFormAddPoint();
-  };
-
-  #escKeyDownFormAddHandler = (evt) => {
-    if (evt.key === 'Escape') {
-      evt.preventDefault();
-      this.#closeFormAddPoint();
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#pointListContainer.shake();
+      return;
     }
-  };
 
-  #closeFormAddPoint = () => {
-    PointPresenter.#pointFormAdd.reset();
-    this.#pointListContainer.firstChild.remove();
-    document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
-    PointPresenter.#editButton.disabled = false;
-    PointPresenter.#formAddMode = MODE_FORM_ADD.DEFAULT;
-  };
+    const resetFormState = () => {
+      this.#pointFormEdit.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+        basePrice: this.#pointFormEdit._state.initialPrice
+      });
+    };
 
-  #pointAddClickHandler = () => {
-    PointPresenter.#handlePointAddClick();
-    PointPresenter.#formAddMode = MODE_FORM_ADD.OPEN;
-    render(PointPresenter.#pointFormAdd, this.#pointListContainer, 'afterbegin');
-    document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
-    PointPresenter.#editButton.disabled = true;
-  };
+    this.#pointFormEdit.shake(resetFormState);
+  }
+
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointFormEdit.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointFormEdit.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
 }

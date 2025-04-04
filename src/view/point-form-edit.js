@@ -41,7 +41,10 @@ export default class PointFormEdit extends AbstractStatefulView {
       destination: formUtil.getDestinationById({id: this._state.destination, destinations: this.#destinations}),
       types: this.#types,
       destinations: this.#destinations,
-      formType: 'Edit'
+      formType: 'Edit',
+      isSaving: this._state.isSaving,
+      isDeleting: this._state.isDeleting,
+      isDisabled: this._state.isDisabled
     });
   }
 
@@ -73,8 +76,21 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   static parsePointToState(point) {
     return {
-      totalPrice: point.basePrice, ...point,
+      totalPrice: point.basePrice,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+      ...point,
     };
+  }
+
+  static parseStateToPoint(state) {
+    const point = {...state};
+    delete point.totalPrice;
+    delete point.isDisabled;
+    delete point.isSaving;
+    delete point.isDeleting;
+    return point;
   }
 
   reset(point) {
@@ -87,13 +103,14 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
+    this._setState({initialPrice: this._state.basePrice});
     this._setState({basePrice: this._state.totalPrice});
     if (this._state.totalPrice < 0) {
       this.element.querySelector('.event__input--price').value = this._state.totalPrice;
     }
     const isValid = this.#pristine.validate();
     if (isValid) {
-      this.#handleFormSubmit(this._state);
+      this.#handleFormSubmit(PointFormEdit.parseStateToPoint(this._state));
     }
   };
 

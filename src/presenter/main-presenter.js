@@ -9,11 +9,13 @@ import {FilterType, MODE_FORM_ADD, SORT_TYPES, SortType, UpdateType, UserAction}
 import {filter} from '../utils/filter';
 import {sortByDay, sortByPrice, sortByTime} from '../utils/point';
 import LoadingView from '../view/loading-view';
+import NewPointPresenter from './new-point-presenter';
 
 export default class MainPresenter {
   #pointListComponent = new PointListView();
   #loadingComponent = new LoadingView();
   #pointPresenters = new Map();
+  #newPointPresenter;
   #emptyList = new EmptyListView();
   #formAddMode = MODE_FORM_ADD.DEFAULT;
   #container;
@@ -30,6 +32,7 @@ export default class MainPresenter {
   #destinations;
   #filterModel;
   #isLoading = true;
+  #addButton;
 
   constructor({container, pointModel, filterModel, pointOptionsModel, destinationModel}) {
     this.#container = container;
@@ -41,6 +44,16 @@ export default class MainPresenter {
     this.#types = this.#pointOptionsModel.getAllTypes();
     this.#destinations = this.#destinationModel.getDestinations();
     this.#filterModel = filterModel;
+    this.#addButton = document.querySelector('.trip-main__event-add-btn');
+    this.#addButton.addEventListener('click', this.#pointAddClickHandler);
+    this.#newPointPresenter = new NewPointPresenter({
+      pointListContainer: this.#pointListComponent.element,
+      pointOptionsModel: this.#pointOptionsModel,
+      destinationModel: this.#destinationModel,
+      handleDataChange: this.#handleViewAction,
+      addButton: this.#addButton,
+      types: this.#types
+    });
     pointModel.addObserver(this.#handleModelEvent);
     filterModel.addObserver(this.#handleModelEvent);
   }
@@ -78,11 +91,11 @@ export default class MainPresenter {
       pointListContainer: this.#pointListComponent.element,
       onFavoritesChange: this.#handleViewAction,
       onModeChange: this.#handleModeChange,
-      onAddClick: this.#HandlePointAddClick,
       pointOptionsModel: this.#pointOptionsModel,
       destinationModel: this.#destinationModel,
       types: this.#types,
-      destinations: this.#destinations
+      destinations: this.#destinations,
+      newPointPresenter: this.#newPointPresenter
     });
     pointPresenter.init({point});
     this.#pointPresenters.set(point.id, pointPresenter);
@@ -145,16 +158,32 @@ export default class MainPresenter {
     this.#sortComponent = newSortComponent;
   }
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this.#pointModel.updatePoint(updateType, update);
+        this.#pointPresenters.get(update.id).setSaving();
+        try {
+          await this.#pointModel.updatePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
       case UserAction.ADD_POINT:
-        this.#pointModel.addPoint(updateType, update);
+        this.#newPointPresenter.setSaving();
+        try {
+          await this.#pointModel.addPoint(updateType, update);
+          this.#newPointPresenter.destroy();
+        } catch (err) {
+          this.#newPointPresenter.setAborting();
+        }
         break;
       case UserAction.DELETE_POINT:
-        this.#pointModel.deletePoint(updateType, update);
+        this.#pointPresenters.get(update.id).setDeleting();
+        try {
+          await this.#pointModel.deletePoint(updateType, update);
+        } catch (err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
     }
   };
@@ -231,16 +260,16 @@ export default class MainPresenter {
     }
   }
 
-  #HandlePointAddClick = () => {
+  #pointAddClickHandler = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
     if (this.#currentFilterType !== FilterType.EVERYTHING) {
       this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     }
-
     if (this.#currentSortType !== SortType.SORT_DAY) {
       this.#replaceSortComponent();
       this.#handleSortTypeChange(SortType.SORT_DAY);
     }
+    this.#newPointPresenter.init();
   };
 }
 

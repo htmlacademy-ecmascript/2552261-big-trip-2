@@ -52,17 +52,14 @@ export default class PointApiService extends ApiService {
       'base_price': Number(point.basePrice),
       'date_from': point.dateFrom,
       'date_to': point.dateTo,
-      'destination': point.destination,
       'is_favorite': Boolean(point.isFavorite),
-      'offers': point.offers,
-      'type': point.type,
     };
 
     delete adaptPoint.basePrice;
     delete adaptPoint.dateFrom;
     delete adaptPoint.dateTo;
     delete adaptPoint.isFavorite;
-    delete adaptPoint.totalPrice;
+    delete adaptPoint.initialPrice;
 
     return adaptPoint;
   }
