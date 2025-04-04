@@ -3,6 +3,8 @@ import {getTypeImage} from '../utils/point';
 import 'flatpickr/dist/flatpickr.min.css';
 import {setupUploadFormValidation} from '../validation';
 import {changeFirstLetter, formatDateTimeZone, formatString} from '../utils/util';
+import {getOffersByType} from '../utils/offer';
+import {getDestinationById} from '../utils/destination';
 import flatpickr from 'flatpickr';
 import dayjs from 'dayjs';
 import he from 'he';
@@ -186,8 +188,8 @@ export default class PointFormEdit extends AbstractStatefulView {
     return createPointEditTemplate({
       point: this._state,
       type: getTypeImage(this._state),
-      offers: this.#getOffersByType({type: this._state.type, offers: this.#offers}),
-      destination: this.#getDestinationById({id: this._state.destination, destinations: this.#destinations}),
+      offers: getOffersByType({type: this._state.type, offers: this.#offers}),
+      destination: getDestinationById({id: this._state.destination, destinations: this.#destinations}),
       types: this.#types,
       destinations: this.#destinations,
       formType: this.#formType,
@@ -269,7 +271,7 @@ export default class PointFormEdit extends AbstractStatefulView {
 
   #pointOffersListChangeHandler = (evt) => {
     evt.preventDefault();
-    const chosenOffer = this.#getOffersByType({
+    const chosenOffer = getOffersByType({
       type: this._state.type,
       offers: this.#offers
     }).find((offer) => offer.title.toLowerCase().replaceAll('-', ' ').includes(evt.target.name.replaceAll('-', ' ').match(/[^event\s][A-Za-z0-9\s]+/)[0]));
@@ -312,14 +314,6 @@ export default class PointFormEdit extends AbstractStatefulView {
       }
     }
   };
-
-  #getOffersByType({type, offers}) {
-    return offers.find((obj) => obj.type.localeCompare(type) === 0)?.offers;
-  } //TODO
-
-  #getDestinationById({id, destinations}) {
-    return destinations.find((obj) => obj.id.localeCompare(id) === 0);
-  }
 
   reset(point) {
     if (point) {

@@ -1,9 +1,7 @@
 import AbstractView from '../framework/view/abstract-view';
 import {getDestinationById} from '../utils/destination';
-import {getOffersByType, getOfferById} from '../utils/offer';
+import {getOffersByType} from '../utils/offer';
 import {sortByDay} from '../utils/point';
-import {getShortDate} from '../utils/util';
-import * as utils from '../utils/util';
 import dayjs from 'dayjs';
 
 function getTravelRoute({points, destinations}) {
