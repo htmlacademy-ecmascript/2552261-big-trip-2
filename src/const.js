@@ -1,3 +1,10 @@
+const DATA_LOAD_ERROR = 'Failed to load latest route information';
+
+const FORM_TYPE = {
+  EDIT: 'Edit',
+  ADD: 'Add',
+};
+
 const URL = {
   POINTS: 'points',
   DESTINATIONS: 'destinations',
@@ -46,4 +53,4 @@ const UpdateType = {
 
 const SORT_TYPES = ['sort-day', 'sort-event', 'sort-time', 'sort-price', 'sort-offer'];
 
-export {FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType, MODE_FORM_ADD, URL};
+export {FilterType, Mode, SortType, SORT_TYPES, UserAction, UpdateType, MODE_FORM_ADD, URL, DATA_LOAD_ERROR, FORM_TYPE};

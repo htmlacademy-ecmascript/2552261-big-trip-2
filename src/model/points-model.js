@@ -10,7 +10,6 @@ export default class PointsModel extends Observable {
     this.#pointApiService = pointApiService;
   }
 
-
   getPoints() {
     return this.#points;
   }
@@ -20,7 +19,7 @@ export default class PointsModel extends Observable {
       const points = await this.#pointApiService.points;
       this.#points = points.map((point) => this.#adaptToClient(point));
     } catch (err) {
-      this.#points = [];
+      throw new Error('Can\'t load events data from server!');
     }
     this._notify(UpdateType.INIT);
   }

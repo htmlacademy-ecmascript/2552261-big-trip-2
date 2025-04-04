@@ -1,10 +1,12 @@
-import {MODE_FORM_ADD, UpdateType, UserAction} from '../const';
-import PointFormAdd from '../view/point-form-add';
+import {FilterType, MODE_FORM_ADD, UpdateType, UserAction} from '../const';
+import PointFormEdit from '../view/point-form-edit';
 import {remove, render} from '../framework/render';
+import {FORM_TYPE} from '../const';
 
 export default class NewPointPresenter {
   #pointListContainer = null;
   #handleDataChange;
+  #renderEmptyList;
   #pointOptionsModel;
   #destinationModel;
   #types;
@@ -17,6 +19,7 @@ export default class NewPointPresenter {
     pointOptionsModel,
     destinationModel,
     handleDataChange,
+    renderEmptyList,
     addButton,
     types
   }) {
@@ -24,6 +27,7 @@ export default class NewPointPresenter {
     this.#pointOptionsModel = pointOptionsModel;
     this.#destinationModel = destinationModel;
     this.#handleDataChange = handleDataChange;
+    this.#renderEmptyList = renderEmptyList;
     this.#addButton = addButton;
     this.#types = types;
 
@@ -31,13 +35,13 @@ export default class NewPointPresenter {
 
   init() {
     this.#formAddMode = MODE_FORM_ADD.OPEN;
-    this.#pointFormAdd = new PointFormAdd({
+    this.#pointFormAdd = new PointFormEdit({
       offers: this.#pointOptionsModel.getOptions(),
       types: this.#types,
       destinations: this.#destinationModel.getDestinations(),
       onFormSubmit: this.#handleAddSubmit,
       onCloseClick: this.#pointFormAddCloseHandler,
-      onAddNewPointClick: this.#handleAddSubmit,
+      formType: FORM_TYPE.ADD
     });
     render(this.#pointFormAdd, this.#pointListContainer, 'afterbegin');
     document.addEventListener('keydown', this.#escKeyDownFormAddHandler);
@@ -55,6 +59,7 @@ export default class NewPointPresenter {
       UpdateType.MINOR,
       point,
     );
+    this.#formAddMode = MODE_FORM_ADD.DEFAULT;
   };
 
   #pointFormAddCloseHandler = () => {
@@ -70,10 +75,13 @@ export default class NewPointPresenter {
 
   #closeFormAddPoint = () => {
     this.#pointFormAdd.reset();
-    this.#pointListContainer.firstChild.remove();
+    remove(this.#pointFormAdd);
     document.removeEventListener('keydown', this.#escKeyDownFormAddHandler);
     this.#addButton.disabled = false;
     this.#formAddMode = MODE_FORM_ADD.DEFAULT;
+    if(this.#pointListContainer.children.length === 0) {
+      this.#renderEmptyList(FilterType.EVERYTHING);
+    }
   };
 
   resetFormAddPoint = () => {
@@ -94,10 +102,10 @@ export default class NewPointPresenter {
       this.#pointFormAdd.updateElement({
         isDisabled: false,
         isSaving: false,
-        basePrice: this.#pointFormAdd._state.initialPrice
+        basePrice: this.#pointFormAdd._state.initialPrice,
       });
     };
-
+    this.#formAddMode = MODE_FORM_ADD.OPEN;
     this.#pointFormAdd.shake(resetFormState);
   }
 }

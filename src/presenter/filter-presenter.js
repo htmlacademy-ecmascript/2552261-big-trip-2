@@ -6,16 +6,15 @@ import FilterView from '../view/filter-view';
 export default class FilterPresenter {
   #filterContainer = null;
   #filterModel = null;
-  #tasksModel = null;
+  #pointsModel = null;
   #filterComponent = null;
-
 
   constructor({filterContainer, filterModel, pointsModel}) {
     this.#filterContainer = filterContainer;
     this.#filterModel = filterModel;
-    this.#tasksModel = pointsModel;
+    this.#pointsModel = pointsModel;
 
-    this.#tasksModel.addObserver(this.#handleModelEvent);
+    this.#pointsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
@@ -30,7 +29,8 @@ export default class FilterPresenter {
     this.#filterComponent = new FilterView({
       filters,
       currentFilterType: this.#filterModel.filter,
-      onFilterTypeChange: this.#handleFilterTypeChange
+      onFilterTypeChange: this.#handleFilterTypeChange,
+      points: this.#pointsModel.getPoints()
     });
 
     if (prevFilterComponent === null) {

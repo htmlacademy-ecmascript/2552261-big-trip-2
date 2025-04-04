@@ -20,6 +20,7 @@ function createPointTemplate({point, type, destination, offers}) {
               <div class="event">
                 <time class="event__date" datetime=${dateFrom}>${utils.getShortDate(dateFromConvert)}</time>
                 <div class="event__type">
+                <span class="visually-hidden">${type.type} ${destination.name}</span>
                   <img class="event__type-icon" width="42" height="42" src=${type.image} alt="Event type icon">
                 </div>
                 <h3 class="event__title">${destination.name}</h3>

@@ -2,7 +2,7 @@ import {getDate} from './util';
 import dayjs from 'dayjs';
 
 function sortByDay(pointA, pointB) {
-  return getDate(pointA.dateFrom) - getDate(pointB.dateFrom);
+  return dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
 }
 
 function sortByPrice(pointA, pointB) {
